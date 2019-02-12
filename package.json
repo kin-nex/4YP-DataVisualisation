@@ -12,8 +12,6 @@
     "@types/jest": "23.3.9",
     "@types/node": "10.12.10",
     "@types/react-router": "^4.4.1",
-    "dotparser": "^0.4.0",
-    "graphlib-dot": "^0.6.2",
     "material-ui": "^0.20.2",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",

@@ -7,10 +7,12 @@ phases:
   build:
     commands:
       - npm run build
-      - serve -s build
+  post_build:
+    commands:
+      - mkdir -p build
 
 artifacts:
   files:
-    - build/**/*
+    - build*/**
   discard-paths: yes
 
