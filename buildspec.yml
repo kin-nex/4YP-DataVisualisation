@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - printenv
+      - npm install
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - mkdir -p build
+
+artifacts:
+  files:
+    - build*/**
+  discard-paths: yes
+
