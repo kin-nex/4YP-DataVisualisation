@@ -1,0 +1,9 @@
+/node_modules
+/build
+/.idea
+.package*
+.tsconfig*
+*~
+
+# JavaScript testing
+test.js
