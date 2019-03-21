@@ -4,12 +4,15 @@ Algorithm for physical => conceptual model:
 2) Pass through one-to-one relationships. These are already defined and can be removed from the data structure.
 3) Now pass through all the one-to-many relationships:
 	if the "many" side is a PK of that table:
-		= We have one-to-many relationship
+		if the "many" side has another PK related to another table's PK in a one-to-many relationship:
+			= We have a many-to-many relationship
+		else:
+			= We have one-to-many relationship
 	else if the "many" side is a FK of that table:
 		if the "one" side is a PK:
 			if the table name of the "one" and "many" side is the same:
 				= Reflexive/recursive relationship
-			else if the "many" side has another FK related to another table's PK in a one-to-many relationship:
+			else if the "many" side has another FK related to another table's PK in a one-to-many relationship (probably looking at a VIEW):
 				= Many-to-many relationship (or possibly weak-entity with 2 owners)
 			else:
 				= Weak entity relationship			

@@ -29,7 +29,7 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
       // password: ""
       dbtype: "mysql",
       host: "data-visualisation.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
-      port: "3298",
+      port: "3306",
       dbname: "employees",
       schema: "employees",
       username: "Erkin",
@@ -66,9 +66,11 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
             value={this.state.dbtype}
             onChange={(e, _, newValue) => {
               if (newValue == "mysql") {
-                this.setState({"dbtype": "mysql", "schema": this.state.dbname})
-              } else {
-                this.handleChange(e, "dbtype", newValue)
+                this.setState({"dbtype": newValue, "schema": this.state.dbname, "port": "3306"})
+              } else if (newValue == "pgsql") {
+                this.setState({"dbtype": newValue, "port": "5432"})
+              } else if (newValue == "mssql") {
+                this.setState({"dbtype": newValue, "port": "1433"})
               }
             }}
           >
@@ -85,6 +87,7 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
           <TextField
             type="number"
             floatingLabelText={"Port*"}
+            value={this.state.port}
             onChange={(e, newValue) => (this.handleChange(e, "port", newValue.toString()))}
           />
           <br />
