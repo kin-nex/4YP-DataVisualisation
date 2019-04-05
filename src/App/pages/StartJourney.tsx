@@ -26,7 +26,7 @@ class StartJourney extends Component<{}, State> {
     this.setState({sentDetails: true});
     let d = uploadDbDetails(JSON.stringify(dbDetails));
     d.then(response => { return response.text() })
-      .then(data => { this.setState({folder: data }) })
+      .then(data => { console.log(data); this.setState({folder: data }) })
   }
 
   render() {
@@ -42,7 +42,10 @@ class StartJourney extends Component<{}, State> {
         )
       } else if (this.state.folder !== undefined) {
         return (
-          <Redirect to="./databaseanalysis" />
+          <Redirect to={{
+            pathname: "./databaseanalysis",
+            state: {folder: this.state.folder, package: PACKAGE}
+          }} />
           // <Link to={'./databaseanalysis'}>
           //   <DatabaseAnalysis folder={this.state.folder} package={PACKAGE} />
           // </Link>
