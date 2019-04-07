@@ -58,65 +58,67 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
     }
     return (
       <MuiThemeProvider>
-        <AppBar title="Start Journey" />
-        <div style={{textAlign: "center"}}>
-          <SelectField
-            style={{textAlign: "left"}}
-            floatingLabelText="Database type"
-            value={this.state.dbtype}
-            onChange={(e, _, newValue) => {
-              if (newValue == "mysql") {
-                this.setState({"dbtype": newValue, "schema": this.state.dbname, "port": "3306"})
-              } else if (newValue == "pgsql") {
-                this.setState({"dbtype": newValue, "port": "5432"})
-              } else if (newValue == "mssql") {
-                this.setState({"dbtype": newValue, "port": "1433"})
-              }
-            }}
-          >
-            <MenuItem value="mssql" label="Microsoft SQL Server" primaryText="Microsoft SQL Server" />
-            <MenuItem value="mysql" label="MySQL" primaryText="MySQL" />
-            <MenuItem value="pgsql" label="PostgreSQL" primaryText="PostgreSQL" />
-          </SelectField>
-          <br />
-          <TextField
-            floatingLabelText="Host address*"
-            onChange={(e, newValue) => (this.handleChange(e, "host", newValue))}
-          />
-          <br />
-          <TextField
-            type="number"
-            floatingLabelText={"Port*"}
-            value={this.state.port}
-            onChange={(e, newValue) => (this.handleChange(e, "port", newValue.toString()))}
-          />
-          <br />
-          <TextField
-            floatingLabelText={"Database name*"}
-            onChange={(e, newValue) => {
-              if (this.state.dbtype == "mysql") {
-                this.setState({"dbname": newValue, "schema": newValue});
-              } else {
-                this.handleChange(e, "dbname", newValue);
+        <div>
+          <AppBar title="Start Journey" />
+          <div style={{textAlign: "center"}}>
+            <SelectField
+              style={{textAlign: "left"}}
+              floatingLabelText="Database type"
+              value={this.state.dbtype}
+              onChange={(e, _, newValue) => {
+                if (newValue == "mysql") {
+                  this.setState({"dbtype": newValue, "schema": this.state.dbname, "port": "3306"})
+                } else if (newValue == "pgsql") {
+                  this.setState({"dbtype": newValue, "port": "5432"})
+                } else if (newValue == "mssql") {
+                  this.setState({"dbtype": newValue, "port": "1433"})
+                }
               }}
-            }
-          />
-          <br />
-          {schema}
-          <br />
-          <TextField
-            floatingLabelText={"Username*"}
-            onChange={(event, newValue) => {this.setState({username: newValue})}}
-          />
-          <br />
-          <TextField
-            type="password"
-            floatingLabelText={"Password*"}
-            onChange={(event, newValue) => {this.setState({password: newValue})}}
-          />
-          <br />
-          <RaisedButton label="Submit" primary={true} style={{margin: 15}}
-                        onClick={() => this.props.getDbData(this.state)} />
+            >
+              <MenuItem value="mssql" label="Microsoft SQL Server" primaryText="Microsoft SQL Server" />
+              <MenuItem value="mysql" label="MySQL" primaryText="MySQL" />
+              <MenuItem value="pgsql" label="PostgreSQL" primaryText="PostgreSQL" />
+            </SelectField>
+            <br />
+            <TextField
+              floatingLabelText="Host address*"
+              onChange={(e, newValue) => (this.handleChange(e, "host", newValue))}
+            />
+            <br />
+            <TextField
+              type="number"
+              floatingLabelText={"Port*"}
+              value={this.state.port}
+              onChange={(e, newValue) => (this.handleChange(e, "port", newValue.toString()))}
+            />
+            <br />
+            <TextField
+              floatingLabelText={"Database name*"}
+              onChange={(e, newValue) => {
+                if (this.state.dbtype == "mysql") {
+                  this.setState({"dbname": newValue, "schema": newValue});
+                } else {
+                  this.handleChange(e, "dbname", newValue);
+                }}
+              }
+            />
+            <br />
+            {schema}
+            <br />
+            <TextField
+              floatingLabelText={"Username*"}
+              onChange={(event, newValue) => {this.setState({username: newValue})}}
+            />
+            <br />
+            <TextField
+              type="password"
+              floatingLabelText={"Password*"}
+              onChange={(event, newValue) => {this.setState({password: newValue})}}
+            />
+            <br />
+            <RaisedButton label="Submit" primary={true} style={{margin: 15}}
+                          onClick={() => this.props.getDbData(this.state)} />
+          </div>
         </div>
       </MuiThemeProvider>
     );

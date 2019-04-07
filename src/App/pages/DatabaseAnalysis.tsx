@@ -19,12 +19,9 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
     }
 
     componentDidMount(): void {
-      console.log(this.props.location.state.folder);
-      console.log(this.props.location.state.package);
-      let d = schemaAnalysis(this.props.location.state.folder);
-      // d.then(response => { return response.json() })
-      //   .then(data => {console.log(data);
-      //     this.setState({tables: data.tables, erd: data.erd, conceptual: data.conceptual}) })
+      let d = schemaAnalysis(this.props.location.state.package, this.props.location.state.folder);
+      d.then(response => { return response.json() })
+        .then(data => { this.setState({tables: data.tables, conceptual: data.conceptual}) })
     }
 
     render() {
@@ -32,20 +29,22 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       const imgsrc = BUCKET + htmlFolder + "/summary/relationships.real.large.svg";
       return (
         <MuiThemeProvider>
-          <AppBar title="Database Analysis" />
-            <div>
-              <Tabs>
-                <Tab label="Tables">
-                  A
-                </Tab>
-                <Tab label="ERD">
-                  <img src={imgsrc} />
-                </Tab>
-                <Tab label="Graphs">
-                  C
-                </Tab>
-              </Tabs>
-            </div>
+          <div>
+            <AppBar title="Database Analysis" />
+              <div>
+                <Tabs>
+                  <Tab label="Tables">
+                    A
+                  </Tab>
+                  <Tab label="ERD">
+                    <img src={imgsrc} />
+                  </Tab>
+                  <Tab label="Graphs">
+                    C
+                  </Tab>
+                </Tabs>
+              </div>
+          </div>
         </MuiThemeProvider>
       );
     }

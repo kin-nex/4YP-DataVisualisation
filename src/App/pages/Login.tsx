@@ -26,22 +26,25 @@ class Login extends Component<{loggedIn: (newState: boolean) => void}, State> {
   render() {
     return (
       <MuiThemeProvider>
-        <TextField
-          hintText="Enter your Username"
-          floatingLabelText="Username"
-          onChange={(event, newValue) => this.setState({username:newValue})}
-        />
-        <br/>
-        <TextField
-          type="password"
-          hintText="Enter your Password"
-          floatingLabelText="Password"
-          onChange = {(event, newValue) => this.setState({password:newValue})}
-        />
-        <br />
-        <RaisedButton label="Submit" primary={true} style={{margin: 15}} onClick={e => this.attemptLogin(e)}/>
-        <p style={{fontSize: 10}}>Don't have an account? <a href="#"><Link to={'./signup'}>Sign up here!</Link></a>
-        </p>
+        <div>
+          <TextField
+            hintText="Enter your Username"
+            floatingLabelText="Username"
+            onChange={(event, newValue) => this.setState({username:newValue})}
+          />
+          <br/>
+          <TextField
+            type="password"
+            hintText="Enter your Password"
+            floatingLabelText="Password"
+            onChange = {(event, newValue) => this.setState({password:newValue})}
+          />
+          <br />
+          <RaisedButton label="Submit" primary={true} style={{margin: 15}} onClick={e => this.attemptLogin(e)}/>
+          <p style={{fontSize: 10}}>
+            Don't have an account? <Link to={'./signup'}>Sign up here!</Link>
+          </p>
+        </div>
       </MuiThemeProvider>
     );
   }

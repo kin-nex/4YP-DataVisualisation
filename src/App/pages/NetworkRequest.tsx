@@ -6,10 +6,13 @@ export function uploadDbDetails(dbDetails: string) {
   })
 }
 
-export function schemaAnalysis(folder: string) {
+export function schemaAnalysis(pkg: string, folder: string) {
   return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/schemaanalysis', {
     method: 'POST',
     mode: 'cors',
-    body: folder
+    body: JSON.stringify({
+      package: pkg,
+      folder: folder
+    })
   })
 }
