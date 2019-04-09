@@ -4,18 +4,23 @@ import AppBar from "material-ui/AppBar";
 import Tabs, {Tab} from "material-ui/Tabs";
 
 import { schemaAnalysis } from './NetworkRequest';
+import Timer from "./Timer";
+import DbTables from "./DbTables";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
 interface State {
-  tables: string,
-  erd: string,
-  conceptual: string
+  tables?: any,
+  conceptual?: any
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
     constructor(props: any) {
       super(props);
+      this.state = {
+        tables: undefined,
+        conceptual: undefined
+      }
     }
 
     componentDidMount(): void {
@@ -26,7 +31,10 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
 
     render() {
       const htmlFolder = encodeURIComponent(this.props.location.state.folder);
-      const imgsrc = BUCKET + htmlFolder + "/summary/relationships.real.large.svg";
+      const imgsrc = BUCKET + htmlFolder + "/summary/relationships.implied.large.png";
+      if (this.state.tables == undefined) {
+        return <Timer time={0} />
+      }
       return (
         <MuiThemeProvider>
           <div>
@@ -34,7 +42,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
               <div>
                 <Tabs>
                   <Tab label="Tables">
-                    A
+                    <DbTables tables={this.state.tables} folder={BUCKET + htmlFolder}/>
                   </Tab>
                   <Tab label="ERD">
                     <img src={imgsrc} />

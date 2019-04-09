@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
+import CircularProgress from "material-ui/CircularProgress";
 
 interface State {
   count: number
@@ -18,21 +20,33 @@ export default class Timer extends Component<{time: number}, State> {
     clearInterval(this.interval);
   }
 
-  tick () {
+  tick(): void {
     this.setState({count: (this.state.count - 1)})
   }
 
   render () {
     if (this.state.count < 0) {
       {clearInterval()}
-      return <div>Hmmmm. Should've been done by now...</div>
-    } else {
       return (
-        <div>
-          Should be done in: {this.state.count} seconds.
+        <div style={{textAlign: "center"}}>
+          <MuiThemeProvider>
+            <div>
+              <CircularProgress style={{ marginTop: 30, marginBottom: 30 }} />
+              <div>Hmmmm. Should be done soon...</div>
+            </div>
+          </MuiThemeProvider>
         </div>
       );
     }
+    return (
+      <div style={{textAlign: "center"}}>
+        <MuiThemeProvider>
+          <div>
+            <CircularProgress style={{ marginTop: 30, marginBottom: 30 }} />
+            <div>Should be done in: {this.state.count} seconds.</div>
+          </div>
+        </MuiThemeProvider>
+      </div>
+    );
   }
-
 }

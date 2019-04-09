@@ -34,22 +34,22 @@ class Home extends Component<{}, State> {
           <div>
             <AppBar title="Home" />
             <div style={{ display: "flex", justifyContent: "center", textAlign: "center" }}>
-            <div style={{ display: "inline-block", width: "30%" }}>
-              <Login loggedIn={this.logInState} />
-            </div>
-            <div style={{
-              display: "inline-block",
-              borderLeft: "2px solid #d3d3d3",
-              marginRight: "30px",
-              marginLeft: "30px",
-            }} />
-            <div style={{ display: "inline-block", width: "30%" }}>
-              <h1>Explore your data!</h1>
-              <br /><br />
-              <Link to={'./startjourney'}>
-                <RaisedButton label="Start" primary={true} style={{margin: 15}}/>
-              </Link>
-            </div>
+              <div style={{ display: "inline-block", width: "30%" }}>
+                <Login loggedIn={this.logInState} />
+              </div>
+              <div style={{
+                display: "inline-block",
+                borderLeft: "2px solid #d3d3d3",
+                marginRight: "30px",
+                marginLeft: "30px",
+              }} />
+              <div style={{ display: "inline-block", width: "30%" }}>
+                <h1>Explore your data!</h1>
+                <br /><br />
+                <Link to={'./startjourney'}>
+                  <RaisedButton label="Start" primary={true} style={{margin: 15}}/>
+                </Link>
+              </div>
             </div>
           </div>
         </MuiThemeProvider>
