@@ -3,6 +3,8 @@ import { Redirect } from 'react-router-dom';
 import DatabaseDetails from "./DatabaseDetails";
 import { uploadDbDetails } from "./NetworkRequest";
 import Timer from "./Timer";
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
+import AppBar from "material-ui/AppBar";
 
 const PACKAGE = "schemaspy";
 
@@ -29,7 +31,14 @@ class StartJourney extends Component<{}, State> {
 
   render() {
     if (!this.state.sentDetails) {
-      return <DatabaseDetails getDbData={this.runDbAnalysis.bind(this)} />
+      return (
+        <MuiThemeProvider>
+          <div>
+            <AppBar showMenuIconButton={false} title="Start Journey" />
+            <DatabaseDetails getDbData={this.runDbAnalysis.bind(this)} />
+          </div>
+        </MuiThemeProvider>
+      );
     } else {
       if (this.state.sentDetails && this.state.folder == undefined) {
         return <Timer time={30}/>

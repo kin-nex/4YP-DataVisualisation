@@ -1,58 +1,30 @@
 import React, { Component } from 'react';
-import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from "material-ui";
+import {Table, TableBody, TableCell, TableHead, TableRow} from "@material-ui/core";
 
 interface Props {
-  tables: { [key: string]: any },
+  tables: { [key: string]: any }
   folder: string
 }
 
-interface State {
-  records?: any
-}
-
-const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
-
-class DbTables extends Component<Props, State> {
+class DbTables extends Component<Props, {}> {
   constructor(props: any) {
     super(props);
   }
-  table: any = null;
-
-  componentDidMount(): void {
-    this.table =
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHeaderColumn>Relation</TableHeaderColumn>
-            <TableHeaderColumn>Type</TableHeaderColumn>
-            <TableHeaderColumn>Primary Keys</TableHeaderColumn>
-            <TableHeaderColumn>Foreign Keys</TableHeaderColumn>
-            <TableHeaderColumn>Non-key attributes</TableHeaderColumn>
-            <TableHeaderColumn>Number of records</TableHeaderColumn>
-            <TableHeaderColumn>Relationship diagram</TableHeaderColumn>
-          </TableRow>
-          <TableBody>
-            {this.generateRecords()}
-          </TableBody>
-        </TableHeader>
-      </Table>;
-  }
-
 
   generateRecords() {
     let tableContents: [JSX.Element?] = [];
     for (let [tableName, data] of Object.entries(this.props.tables)) {
       tableContents.push(
         <TableRow>
-          <TableRowColumn style={{textAlign: "center"}}>{tableName}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>{data["type"]}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>{data["primary_keys"].join(", ")}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>{data["foreign_keys"].join(", ")}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>{data["non_keys"].join(", ")}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>{data["rows"]}</TableRowColumn>
-          <TableRowColumn style={{textAlign: "center"}}>
-            <img src={this.props.folder + "/" + tableName + ".png"} width={300} />
-            </TableRowColumn>
+          <TableCell style={{textAlign: "center"}}>{tableName}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["type"]}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["primary_keys"].join(", ")}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["foreign_keys"].join(", ")}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["non_keys"].join(", ")}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["rows"]}</TableCell>
+          <TableCell style={{textAlign: "center"}}>
+            <img src={this.props.folder + "/" + tableName + ".png"} width="100%" />
+          </TableCell>
         </TableRow>
       )
     }
@@ -61,19 +33,19 @@ class DbTables extends Component<Props, State> {
 
   render() {
     return (
-      <Table fixedHeader={false} style={{ width: "auto", tableLayout: "auto" }}>
-        <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+      <Table style={{ width: "auto", tableLayout: "auto", overflowX: "auto" }}>
+        <TableHead>
           <TableRow>
-            <TableHeaderColumn style={{textAlign: "center"}}>Relation</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Type</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Primary Keys</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Foreign Keys</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Non-key attributes</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Number of records</TableHeaderColumn>
-            <TableHeaderColumn style={{textAlign: "center"}}>Relation diagram</TableHeaderColumn>
+            <TableCell style={{textAlign: "center"}}>Relation</TableCell>
+            <TableCell style={{textAlign: "center"}}>Type</TableCell>
+            <TableCell style={{textAlign: "center"}}>Primary Keys</TableCell>
+            <TableCell style={{textAlign: "center"}}>Foreign Keys</TableCell>
+            <TableCell style={{textAlign: "center"}}>Non-key attributes</TableCell>
+            <TableCell style={{textAlign: "center"}}>Number of records</TableCell>
+            <TableCell style={{textAlign: "center"}}>Relation diagram</TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody displayRowCheckbox={false}>
+        </TableHead>
+        <TableBody>
           {this.generateRecords()}
         </TableBody>
       </Table>

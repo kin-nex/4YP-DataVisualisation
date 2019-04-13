@@ -1,9 +1,8 @@
 /node_modules
 /build
 /.idea
-.package*
-.tsconfig*
 *~
+/package-lock.json
 
 # JavaScript testing
 test.js

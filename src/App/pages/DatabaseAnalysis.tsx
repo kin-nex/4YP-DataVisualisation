@@ -6,12 +6,17 @@ import Tabs, {Tab} from "material-ui/Tabs";
 import { schemaAnalysis } from './NetworkRequest';
 import Timer from "./Timer";
 import DbTables from "./DbTables";
+import EntitySelect from "./EntitySelect";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
 interface State {
-  tables?: any,
+  tables?: any
   conceptual?: any
+  ent1?: string
+  att1?: string
+  ent2?: string
+  att2?: string
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
@@ -19,7 +24,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       super(props);
       this.state = {
         tables: undefined,
-        conceptual: undefined
+        conceptual: undefined,
+        ent1: undefined,
+        att1: undefined,
+        ent2: undefined,
+        att2: undefined
       }
     }
 
@@ -28,6 +37,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       d.then(response => { return response.json() })
         .then(data => { this.setState({tables: data.tables, conceptual: data.conceptual}) })
     }
+
+    selectEntityRelationship(entrel: any) {
+      //todo
+    }
+
 
     render() {
       const htmlFolder = encodeURIComponent(this.props.location.state.folder);
@@ -38,7 +52,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       return (
         <MuiThemeProvider>
           <div>
-            <AppBar title="Database Analysis" />
+            <AppBar showMenuIconButton={false} title="Database Analysis" />
               <div>
                 <Tabs>
                   <Tab label="Tables">
@@ -48,7 +62,9 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <img src={imgsrc} />
                   </Tab>
                   <Tab label="Graphs">
-                    C
+                    <EntitySelect tables={Object.keys(this.state.tables)}
+                                  conceptual={this.state.conceptual}
+                                  selected={this.selectEntityRelationship} />
                   </Tab>
                 </Tabs>
               </div>

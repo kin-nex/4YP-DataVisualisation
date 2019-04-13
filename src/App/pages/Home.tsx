@@ -32,7 +32,7 @@ class Home extends Component<{}, State> {
     return (
         <MuiThemeProvider>
           <div>
-            <AppBar title="Home" />
+            <AppBar showMenuIconButton={false} title="Home" />
             <div style={{ display: "flex", justifyContent: "center", textAlign: "center" }}>
               <div style={{ display: "inline-block", width: "30%" }}>
                 <Login loggedIn={this.logInState} />
