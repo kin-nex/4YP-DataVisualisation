@@ -36,20 +36,26 @@ class EntitySelect extends Component<Props, State> {
     return possible;
   }
 
-  handleChange = (event: any, value: string) => {
-    this.setState({ent1: value});
+  handleChangeEnt1 = (event: any, value: string) => {
+    this.props.selected({ent1: value, ent2: undefined});
+    this.setState({ent1: value, ent2: undefined});
+  };
+
+  handleChangeEnt2 = (event: any, value: string) => {
+    this.props.selected({ent1: this.state.ent1, ent2: value});
+    this.setState({ent2: value});
   };
 
   render () {
     return (
       <div>
         <div style={{float: "left", margin: 25}}>
-          <RadioButtonGroup name={"entities"} onChange={this.handleChange}>
+          <RadioButtonGroup name={"entities"} onChange={this.handleChangeEnt1}>
             {this.generateEntityRadios()}
           </RadioButtonGroup>
         </div>
         <div style={{float: "left", margin: 25}}>
-          <RadioButtonGroup name={"relationship"}>
+          <RadioButtonGroup name={"relationship"} defaultSelected={undefined} onChange={this.handleChangeEnt2}>
             {this.possibleRelationships()}
           </RadioButtonGroup>
         </div>

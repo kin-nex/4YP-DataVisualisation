@@ -17,13 +17,13 @@ class DbTables extends Component<Props, {}> {
       tableContents.push(
         <TableRow>
           <TableCell style={{textAlign: "center"}}>{tableName}</TableCell>
-          <TableCell style={{textAlign: "center"}}>{data["type"]}</TableCell>
+          <TableCell style={{textAlign: "center"}}>{data["type"].toUpperCase()}</TableCell>
           <TableCell style={{textAlign: "center"}}>{data["primary_keys"].join(", ")}</TableCell>
           <TableCell style={{textAlign: "center"}}>{data["foreign_keys"].join(", ")}</TableCell>
           <TableCell style={{textAlign: "center"}}>{data["non_keys"].join(", ")}</TableCell>
           <TableCell style={{textAlign: "center"}}>{data["rows"]}</TableCell>
           <TableCell style={{textAlign: "center"}}>
-            <img src={this.props.folder + "/" + tableName + ".png"} width="100%" />
+            {/*<img src={this.props.folder + "/" + tableName + ".png"} width="100%" />*/}
           </TableCell>
         </TableRow>
       )

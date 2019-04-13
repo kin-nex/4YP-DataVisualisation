@@ -7,6 +7,7 @@ import { schemaAnalysis } from './NetworkRequest';
 import Timer from "./Timer";
 import DbTables from "./DbTables";
 import EntitySelect from "./EntitySelect";
+import GenerateGraphs from "./GenerateGraphs";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
@@ -14,9 +15,7 @@ interface State {
   tables?: any
   conceptual?: any
   ent1?: string
-  att1?: string
   ent2?: string
-  att2?: string
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
@@ -26,10 +25,9 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         tables: undefined,
         conceptual: undefined,
         ent1: undefined,
-        att1: undefined,
         ent2: undefined,
-        att2: undefined
-      }
+      };
+      this.selectEntityRelationship = this.selectEntityRelationship.bind(this);
     }
 
     componentDidMount(): void {
@@ -39,16 +37,18 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
     }
 
     selectEntityRelationship(entrel: any) {
-      //todo
+      this.setState({ent1: entrel.ent1, ent2: entrel.ent2})
     }
 
 
     render() {
       const htmlFolder = encodeURIComponent(this.props.location.state.folder);
       const imgsrc = BUCKET + htmlFolder + "/summary/relationships.implied.large.png";
-      if (this.state.tables == undefined) {
-        return <Timer time={0} />
-      }
+      if (this.state.tables == undefined)
+        return <Timer time={0} />;
+      const selectedTables: { [key: string]: string } = {};
+      if (this.state.ent1 != null) selectedTables[this.state.ent1] = this.state.tables[this.state.ent1];
+      if (this.state.ent2 != null) selectedTables[this.state.ent2] = this.state.tables[this.state.ent2];
       return (
         <MuiThemeProvider>
           <div>
@@ -59,12 +59,25 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <DbTables tables={this.state.tables} folder={BUCKET + htmlFolder}/>
                   </Tab>
                   <Tab label="ERD">
-                    <img src={imgsrc} />
+                    {/*<img src={imgsrc} />*/}
                   </Tab>
                   <Tab label="Graphs">
-                    <EntitySelect tables={Object.keys(this.state.tables)}
-                                  conceptual={this.state.conceptual}
-                                  selected={this.selectEntityRelationship} />
+                    <div>
+                      <div style={{ float: "left" }}>
+                        <EntitySelect tables={Object.keys(this.state.tables)}
+                                      conceptual={this.state.conceptual}
+                                      selected={this.selectEntityRelationship} />
+                      </div>
+                      <div style={{ float: "left" }}>
+                        {(() => {if (this.state.ent1 != undefined)
+                          return <DbTables tables={selectedTables} folder={BUCKET + htmlFolder} />})()}
+                      </div>
+                    </div>
+                    <div>
+                      <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
+                                      folder={BUCKET + htmlFolder}
+                                      conceptual={this.state.conceptual}/>
+                    </div>
                   </Tab>
                 </Tabs>
               </div>

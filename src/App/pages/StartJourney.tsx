@@ -9,6 +9,7 @@ import AppBar from "material-ui/AppBar";
 const PACKAGE = "schemaspy";
 
 interface State {
+  dbDetails: any,
   sentDetails: boolean,
   folder?: string
 }
@@ -17,6 +18,7 @@ class StartJourney extends Component<{}, State> {
   constructor(props: any) {
     super(props);
     this.state = {
+      dbDetails: undefined,
       sentDetails: false,
       folder: undefined
     }
@@ -26,7 +28,7 @@ class StartJourney extends Component<{}, State> {
     this.setState({sentDetails: true});
     let d = uploadDbDetails(JSON.stringify(dbDetails));
     d.then(response => { return response.text() })
-      .then(data => { console.log(data); this.setState({folder: data }) })
+      .then(data => { this.setState({folder: data }) })
   }
 
   render() {
@@ -46,7 +48,7 @@ class StartJourney extends Component<{}, State> {
         return (
           <Redirect to={{
             pathname: "./databaseanalysis",
-            state: {folder: this.state.folder, package: PACKAGE}
+            state: {dbDetails: this.state.dbDetails, folder: this.state.folder, package: PACKAGE}
           }} />
         );
       }
