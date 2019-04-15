@@ -2,7 +2,6 @@
 /build
 /.idea
 *~
-/package-lock.json
 
 # JavaScript testing
 test.js
