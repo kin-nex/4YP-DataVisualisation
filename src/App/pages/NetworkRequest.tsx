@@ -16,3 +16,14 @@ export function schemaAnalysis(pkg: string, folder: string) {
     })
   })
 }
+
+export function getPotentialGraphs_basicentity(dbDetails: { [key: string]: any }, entity: string) {
+  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/gpg-basicentity', {
+    method: 'POST',
+    mode: 'cors',
+    body: JSON.stringify({
+      dbDetails: dbDetails,
+      entity: entity
+    })
+  })
+}

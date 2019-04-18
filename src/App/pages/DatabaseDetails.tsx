@@ -51,7 +51,7 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
     } else {
       schema = <TextField
         floatingLabelText="Schema*"
-        onChange={(e, newValue) => (this.handleChange(e, "schema", newValue))}
+        onChange={(e: any, newValue: string) => (this.handleChange(e, "schema", newValue))}
       />
     }
     return (
@@ -60,7 +60,7 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
           style={{textAlign: "left"}}
           floatingLabelText="Database type"
           value={this.state.dbtype}
-          onChange={(e, _, newValue) => {
+          onChange={(e: any, _: any, newValue: string) => {
             if (newValue == "mysql") {
               this.setState({"dbtype": newValue, "schema": this.state.dbname, "port": "3306"})
             } else if (newValue == "pgsql") {
@@ -77,19 +77,19 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
         <br />
         <TextField
           floatingLabelText="Host address*"
-          onChange={(e, newValue) => (this.handleChange(e, "host", newValue))}
+          onChange={(e: any, newValue: string) => (this.handleChange(e, "host", newValue))}
         />
         <br />
         <TextField
           type="number"
           floatingLabelText={"Port*"}
           value={this.state.port}
-          onChange={(e, newValue) => (this.handleChange(e, "port", newValue.toString()))}
+          onChange={(e: any, newValue: any) => (this.handleChange(e, "port", newValue.toString()))}
         />
         <br />
         <TextField
           floatingLabelText={"Database name*"}
-          onChange={(e, newValue) => {
+          onChange={(e: any, newValue: string) => {
             if (this.state.dbtype == "mysql") {
               this.setState({"dbname": newValue, "schema": newValue});
             } else {
@@ -102,13 +102,13 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
         <br />
         <TextField
           floatingLabelText={"Username*"}
-          onChange={(event, newValue) => {this.setState({username: newValue})}}
+          onChange={(e: any, newValue: string) => {this.setState({username: newValue})}}
         />
         <br />
         <TextField
           type="password"
           floatingLabelText={"Password*"}
-          onChange={(event, newValue) => {this.setState({password: newValue})}}
+          onChange={(e: any, newValue: string) => {this.setState({password: newValue})}}
         />
         <br />
         <RaisedButton label="Submit" primary={true} style={{margin: 15}}

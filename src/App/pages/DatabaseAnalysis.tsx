@@ -16,9 +16,12 @@ interface State {
   conceptual?: any
   ent1?: string
   ent2?: string
+  relationship?: string
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
+    htmlFolder: string;
+
     constructor(props: any) {
       super(props);
       this.state = {
@@ -26,7 +29,9 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         conceptual: undefined,
         ent1: undefined,
         ent2: undefined,
+        relationship: undefined
       };
+      this.htmlFolder = encodeURIComponent(this.props.location.state.folder);
       this.selectEntityRelationship = this.selectEntityRelationship.bind(this);
     }
 
@@ -36,14 +41,13 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         .then(data => { this.setState({tables: data.tables, conceptual: data.conceptual}) })
     }
 
-    selectEntityRelationship(entrel: any) {
-      this.setState({ent1: entrel.ent1, ent2: entrel.ent2})
+    selectEntityRelationship(entrel: { [key: string]: string}) {
+      this.setState({ent1: entrel.ent1, ent2: entrel.ent2, relationship: entrel.relationship})
     }
 
 
     render() {
-      const htmlFolder = encodeURIComponent(this.props.location.state.folder);
-      const imgsrc = BUCKET + htmlFolder + "/summary/relationships.implied.large.png";
+      const imgsrc = BUCKET + this.htmlFolder + "/summary/relationships.implied.large.png";
       if (this.state.tables == undefined)
         return <Timer time={0} />;
       const selectedTables: { [key: string]: string } = {};
@@ -56,27 +60,27 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
               <div>
                 <Tabs>
                   <Tab label="Tables">
-                    <DbTables tables={this.state.tables} folder={BUCKET + htmlFolder}/>
+                    <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
                   <Tab label="ERD">
                     {/*<img src={imgsrc} />*/}
                   </Tab>
                   <Tab label="Graphs">
-                    <div>
-                      <div style={{ float: "left" }}>
-                        <EntitySelect tables={Object.keys(this.state.tables)}
-                                      conceptual={this.state.conceptual}
-                                      selected={this.selectEntityRelationship} />
-                      </div>
-                      <div style={{ float: "left" }}>
-                        {(() => {if (this.state.ent1 != undefined)
-                          return <DbTables tables={selectedTables} folder={BUCKET + htmlFolder} />})()}
-                      </div>
+                    <div style={{ float: "left" }}>
+                      <EntitySelect tables={Object.keys(this.state.tables)}
+                                    conceptual={this.state.conceptual}
+                                    selected={this.selectEntityRelationship} />
                     </div>
-                    <div>
+                    <div style={{ float: "left", clear: "both" }}>
+                      {(() => {if (this.state.ent1 != undefined)
+                        return <DbTables tables={selectedTables} folder={BUCKET + this.htmlFolder} />})()}
+                    </div>
+                    <div style={{ clear: "both" }}>
                       <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
-                                      folder={BUCKET + htmlFolder}
-                                      conceptual={this.state.conceptual}/>
+                                      folder={BUCKET + this.htmlFolder}
+                                      conceptual={this.state.conceptual}
+                                      ent1={this.state.ent1}
+                                      ent2={this.state.ent2}/>
                     </div>
                   </Tab>
                 </Tabs>

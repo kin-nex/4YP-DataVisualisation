@@ -10,7 +10,6 @@ const PACKAGE = "schemaspy";
 
 interface State {
   dbDetails: any,
-  sentDetails: boolean,
   folder?: string
 }
 
@@ -19,20 +18,19 @@ class StartJourney extends Component<{}, State> {
     super(props);
     this.state = {
       dbDetails: undefined,
-      sentDetails: false,
       folder: undefined
     }
   }
 
   runDbAnalysis(dbDetails: any) {
-    this.setState({sentDetails: true});
+    this.setState({dbDetails: dbDetails});
     let d = uploadDbDetails(JSON.stringify(dbDetails));
     d.then(response => { return response.text() })
       .then(data => { this.setState({folder: data }) })
   }
 
   render() {
-    if (!this.state.sentDetails) {
+    if (this.state.dbDetails == undefined) {
       return (
         <MuiThemeProvider>
           <div>
@@ -42,14 +40,14 @@ class StartJourney extends Component<{}, State> {
         </MuiThemeProvider>
       );
     } else {
-      if (this.state.sentDetails && this.state.folder == undefined) {
+      if (this.state.folder == undefined) {
         return <Timer time={30}/>
-      } else if (this.state.folder !== undefined) {
+      } else {
         return (
           <Redirect to={{
             pathname: "./databaseanalysis",
             state: {dbDetails: this.state.dbDetails, folder: this.state.folder, package: PACKAGE}
-          }} />
+          }}/>
         );
       }
     }

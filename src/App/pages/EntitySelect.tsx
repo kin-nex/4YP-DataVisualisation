@@ -11,6 +11,7 @@ interface Props {
 interface State {
   ent1?: string
   ent2?: string
+  relationship?: string
 }
 
 class EntitySelect extends Component<Props, State> {
@@ -18,7 +19,8 @@ class EntitySelect extends Component<Props, State> {
     super(props);
     this.state = {
       ent1: undefined,
-      ent2: undefined
+      ent2: undefined,
+      relationship: undefined
     }
   }
 
@@ -29,21 +31,23 @@ class EntitySelect extends Component<Props, State> {
   possibleRelationships(): JSX.Element[] {
     if (this.state.ent1 == undefined) return [];
     let possible: JSX.Element[] = [];
-    for (let [_, rels] of Object.entries(this.props.conceptual))
+    for (let [rel, rels] of Object.entries(this.props.conceptual))
       for (let entry of rels)
-        if (entry.ent1 == this.state.ent1)
-          possible.push(<RadioButton value={entry.ent2} label={entry.ent2}/>);
+        if (entry.ent1 == this.state.ent1) {
+          possible.push(<RadioButton value={[rel, entry.ent2].join(",")} label={"(" + rel + ") " + entry.ent2}/>);
+        }
     return possible;
   }
 
   handleChangeEnt1 = (event: any, value: string) => {
     this.props.selected({ent1: value, ent2: undefined});
-    this.setState({ent1: value, ent2: undefined});
+    this.setState({ent1: value, ent2: undefined, relationship: undefined});
   };
 
   handleChangeEnt2 = (event: any, value: string) => {
-    this.props.selected({ent1: this.state.ent1, ent2: value});
-    this.setState({ent2: value});
+    const values = value.split(",")
+    this.props.selected({ent1: this.state.ent1, ent2: values[1]});
+    this.setState({relationship: values[0], ent2: values[1]});
   };
 
   render () {
