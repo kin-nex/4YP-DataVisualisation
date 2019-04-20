@@ -15,6 +15,7 @@ interface State {
   tables?: any
   conceptual?: any
   ent1?: string
+  pKey1?: string
   ent2?: string
   relationship?: string
 }
@@ -28,6 +29,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         tables: undefined,
         conceptual: undefined,
         ent1: undefined,
+        pKey1: undefined,
         ent2: undefined,
         relationship: undefined
       };
@@ -41,10 +43,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         .then(data => { this.setState({tables: data.tables, conceptual: data.conceptual}) })
     }
 
-    selectEntityRelationship(entrel: { [key: string]: string}) {
-      this.setState({ent1: entrel.ent1, ent2: entrel.ent2, relationship: entrel.relationship})
-    }
-
+    selectEntityRelationship(entrel: { [key: string]: string}) { this.setState(entrel) }
 
     render() {
       const imgsrc = BUCKET + this.htmlFolder + "/summary/relationships.implied.large.png";
@@ -59,17 +58,21 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
             <AppBar showMenuIconButton={false} title="Database Analysis" />
               <div>
                 <Tabs>
-                  <Tab label="Tables">
+                  <Tab label="Tables" key={"Tables"}>
                     <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
-                  <Tab label="ERD">
+                  <Tab label="ERD" key={"ERD"}>
                     {/*<img src={imgsrc} />*/}
                   </Tab>
-                  <Tab label="Graphs">
+                  <Tab label="Graphs" key={"Graphs"}>
                     <div style={{ float: "left" }}>
-                      <EntitySelect tables={Object.keys(this.state.tables)}
+                      <EntitySelect tables={tableToPrimkeys(this.state.tables)}
                                     conceptual={this.state.conceptual}
-                                    selected={this.selectEntityRelationship} />
+                                    selected={this.selectEntityRelationship}
+                                    ent1={this.state.ent1}
+                                    pKey1={this.state.pKey1}
+                                    ent2={this.state.ent2}
+                                    relationship={this.state.relationship}/>
                     </div>
                     <div style={{ float: "left", clear: "both" }}>
                       {(() => {if (this.state.ent1 != undefined)
@@ -77,10 +80,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     </div>
                     <div style={{ clear: "both" }}>
                       <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
-                                      folder={BUCKET + this.htmlFolder}
                                       conceptual={this.state.conceptual}
                                       ent1={this.state.ent1}
-                                      ent2={this.state.ent2}/>
+                                      pKey1={this.state.pKey1}
+                                      ent2={this.state.ent2}
+                                      relationship={this.state.relationship}/>
                     </div>
                   </Tab>
                 </Tabs>
@@ -89,6 +93,13 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         </MuiThemeProvider>
       );
     }
+}
+
+function tableToPrimkeys(table: { [key: string]: any }) {
+  return Object.keys(table).reduce((necessary: any, key) => {
+    necessary[key] = table[key]["primary_keys"];
+    return necessary
+  }, {});
 }
 
 export default DatabaseAnalysis;
