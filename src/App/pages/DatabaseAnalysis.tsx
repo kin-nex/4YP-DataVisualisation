@@ -62,7 +62,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
                   <Tab label="ERD" key={"ERD"}>
-                    {/*<img src={imgsrc} />*/}
+                    <img src={imgsrc} />
                   </Tab>
                   <Tab label="Graphs" key={"Graphs"}>
                     <div style={{ float: "left" }}>

@@ -58,7 +58,6 @@ class GenerateGraphs extends Component<Props, State> {
 
 
   render() {
-    console.log(this.state.possibleGraphs)
     const buttons = generateButtons(this.state.possibleGraphs);
     return (
       <div>
