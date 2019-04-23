@@ -8,6 +8,7 @@ import Timer from "./Timer";
 import DbTables from "./DbTables";
 import EntitySelect from "./EntitySelect";
 import GenerateGraphs from "./GenerateGraphs";
+import {ASSOCIATIVE_ENTITY} from "../Constants";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
@@ -18,6 +19,7 @@ interface State {
   pKey1?: string
   ent2?: string
   relationship?: string
+  associativeEntities?: any
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
@@ -31,7 +33,8 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         ent1: undefined,
         pKey1: undefined,
         ent2: undefined,
-        relationship: undefined
+        relationship: undefined,
+        associativeEntities: undefined
       };
       this.htmlFolder = encodeURIComponent(this.props.location.state.folder);
       this.selectEntityRelationship = this.selectEntityRelationship.bind(this);
@@ -40,7 +43,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
     componentDidMount(): void {
       let d = schemaAnalysis(this.props.location.state.package, this.props.location.state.folder);
       d.then(response => { return response.json() })
-        .then(data => { this.setState({tables: data.tables, conceptual: data.conceptual}) })
+        .then(data => {
+          const associatives: { [key: string]: string } = data.conceptual[ASSOCIATIVE_ENTITY];
+          delete data.conceptual[ASSOCIATIVE_ENTITY];
+          this.setState({tables: data.tables, conceptual: data.conceptual, associativeEntities: associatives});
+        })
     }
 
     selectEntityRelationship(entrel: { [key: string]: string}) { this.setState(entrel) }
@@ -84,7 +91,8 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                                       ent1={this.state.ent1}
                                       pKey1={this.state.pKey1}
                                       ent2={this.state.ent2}
-                                      relationship={this.state.relationship}/>
+                                      relationship={this.state.relationship}
+                                      associativeEntities={this.state.associativeEntities}/>
                     </div>
                   </Tab>
                 </Tabs>
