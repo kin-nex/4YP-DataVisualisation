@@ -17,14 +17,19 @@ export function schemaAnalysis(pkg: string, folder: string) {
   })
 }
 
-export function getPotentialGraphs_basicentity(dbDetails: { [key: string]: any }, entity: string, primaryKey: string) {
-  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/gpg-basicentity', {
+export function getEntityDetails(dbDetails: { [key: string]: any }, visType: string, ent1: string, pKey1: string,
+                                 ent2?: string, pKey2?: string, associativeEntity?: string[]) {
+  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/getentitydetails', {
     method: 'POST',
     mode: 'cors',
     body: JSON.stringify({
       dbDetails: dbDetails,
-      entity: entity,
-      pKey: primaryKey
+      visType: visType,
+      ent1: ent1,
+      pKey1: pKey1,
+      ent2: ent2,
+      pKey2: pKey2,
+      associativeEntity: associativeEntity
     })
   })
 }

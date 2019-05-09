@@ -1,3 +1,9 @@
+export const SIZE = "size";
+export const SPACIALS = "spacials";
+export const NUMERICS = "numerics";
+export const TEMPORALS = "temporals";
+export const LEXICALS = "lexicals";
+export const BASIC_ENTITY = "basic-entity";
 export const ONE_TO_MANY = "one-to-many";
 export const MANY_TO_MANY = "many-to-many";
 export const ASSOCIATIVE_ENTITY = "associative-entity";

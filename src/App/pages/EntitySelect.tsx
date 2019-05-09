@@ -36,14 +36,14 @@ class EntitySelect extends Component<Props, State> {
   possibleRelationships(): JSX.Element[] {
     if (this.props.ent1 == undefined) return [];
     let possible: JSX.Element[] = [];
-    for (let [rel, rels] of Object.entries(this.props.conceptual))
-      for (let entry of rels)
+    for (let [rel, ents] of Object.entries(this.props.conceptual))
+      for (let entry of ents)
         if (entry.ent1 == this.props.ent1 && entry.att1 == this.props.pKey1)
           possible.push(<RadioButton key={[rel, entry.ent2].join(",")} value={[rel, entry.ent2].join(",")} label={"(" + rel + ") " + entry.ent2}/>);
     return possible;
   }
 
-  handleChangeEnt1 = (event: object, value: string) => {
+  handleChangeEntSelect = (event: object, value: string) => {
     let pKeys = this.props.tables[value];
     // Check if only 1 primary key
     if (pKeys.length == 1) {
@@ -55,12 +55,11 @@ class EntitySelect extends Component<Props, State> {
     }
   };
 
-  handleChangeEnt2 = (event: object, value: string) => {
-    this.setState(this.state);
+  handleChangePrimSelect = (event: object, value: string) => {
     this.props.selected({pKey1: value, ent2: undefined, relationship: undefined});
   };
 
-  handleChangeEnt3 = (event: object, value: string) => {
+  handleChangeSecondEnt = (event: object, value: string) => {
     const values = value.split(",");
     this.props.selected({relationship: values[0], ent2: values[1]});
   };
@@ -69,17 +68,17 @@ class EntitySelect extends Component<Props, State> {
     return (
       <div>
         <div style={{float: "left", margin: 25}}>
-          <RadioButtonGroup name={"entities"} onChange={this.handleChangeEnt1}>
+          <RadioButtonGroup name={"entities"} onChange={this.handleChangeEntSelect}>
             {this.generateEntityRadios()}
           </RadioButtonGroup>
         </div>
         <div style={{float: "left", margin: 25}}>
-          <RadioButtonGroup name={"entities"} onChange={this.handleChangeEnt2}>
+          <RadioButtonGroup name={"primKey"} onChange={this.handleChangePrimSelect}>
             {this.identifyPrimKey()}
           </RadioButtonGroup>
         </div>
         <div style={{float: "left", margin: 25}}>
-          <RadioButtonGroup name={"relationship"} onChange={this.handleChangeEnt3}>
+          <RadioButtonGroup name={"relationship"} onChange={this.handleChangeSecondEnt}>
             {this.possibleRelationships()}
           </RadioButtonGroup>
         </div>

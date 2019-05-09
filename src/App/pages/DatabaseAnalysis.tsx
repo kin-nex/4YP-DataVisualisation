@@ -8,7 +8,7 @@ import Timer from "./Timer";
 import DbTables from "./DbTables";
 import EntitySelect from "./EntitySelect";
 import GenerateGraphs from "./GenerateGraphs";
-import {ASSOCIATIVE_ENTITY} from "../Constants";
+import {BASIC_ENTITY, ONE_TO_MANY, MANY_TO_MANY, ASSOCIATIVE_ENTITY} from "../Constants";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
@@ -50,7 +50,9 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         })
     }
 
-    selectEntityRelationship(entrel: { [key: string]: string}) { this.setState(entrel) }
+    selectEntityRelationship(entrel: { [key: string]: string}) {
+      this.setState(entrel);
+    }
 
     render() {
       const imgsrc = BUCKET + this.htmlFolder + "/summary/relationships.implied.large.png";
@@ -59,6 +61,16 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       const selectedTables: { [key: string]: string } = {};
       if (this.state.ent1 != null) selectedTables[this.state.ent1] = this.state.tables[this.state.ent1];
       if (this.state.ent2 != null) selectedTables[this.state.ent2] = this.state.tables[this.state.ent2];
+      let visType: string | undefined;
+      switch (this.state.relationship) {
+        case ONE_TO_MANY:
+          visType = ONE_TO_MANY; break;
+        case MANY_TO_MANY:
+          visType = MANY_TO_MANY; break;
+        default:
+          if (this.state.ent1 && this.state.pKey1 && this.state.ent2 == undefined)
+            visType = BASIC_ENTITY;
+      }
       return (
         <MuiThemeProvider>
           <div>
@@ -69,7 +81,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
                   <Tab label="ERD" key={"ERD"}>
-                    <img src={imgsrc} />
+                    {/*<img src={imgsrc} />*/}
                   </Tab>
                   <Tab label="Graphs" key={"Graphs"}>
                     <div style={{ float: "left" }}>
@@ -85,15 +97,21 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                       {(() => {if (this.state.ent1 != undefined)
                         return <DbTables tables={selectedTables} folder={BUCKET + this.htmlFolder} />})()}
                     </div>
-                    <div style={{ clear: "both" }}>
-                      <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
-                                      conceptual={this.state.conceptual}
-                                      ent1={this.state.ent1}
-                                      pKey1={this.state.pKey1}
-                                      ent2={this.state.ent2}
-                                      relationship={this.state.relationship}
-                                      associativeEntities={this.state.associativeEntities}/>
-                    </div>
+                    {(() => {
+                      if (visType && this.state.ent1 && this.state.pKey1)
+                        return (
+                          <div style={{clear: "both"}}>
+                            <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
+                                            conceptual={this.state.conceptual}
+                                            visType={visType}
+                                            ent1={this.state.ent1}
+                                            pKey1={this.state.pKey1}
+                                            ent2={this.state.ent2}
+                                            relationship={this.state.relationship}
+                                            associativeEntities={this.state.associativeEntities}/>
+                          </div>
+                        );
+                    })()}
                   </Tab>
                 </Tabs>
               </div>
