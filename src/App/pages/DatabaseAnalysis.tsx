@@ -8,7 +8,7 @@ import Timer from "./Timer";
 import DbTables from "./DbTables";
 import EntitySelect from "./EntitySelect";
 import GenerateGraphs from "./GenerateGraphs";
-import {BASIC_ENTITY, ONE_TO_MANY, MANY_TO_MANY, ASSOCIATIVE_ENTITY} from "../Constants";
+import * as constants from "../Constants";
 
 const BUCKET = "https://s3.eu-west-2.amazonaws.com/data-visualisation-data/";
 
@@ -20,6 +20,7 @@ interface State {
   ent2?: string
   relationship?: string
   associativeEntities?: any
+  selectAtts: string[]
 }
 
 class DatabaseAnalysis extends Component<{location: any}, State> {
@@ -34,7 +35,8 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         pKey1: undefined,
         ent2: undefined,
         relationship: undefined,
-        associativeEntities: undefined
+        associativeEntities: undefined,
+        selectAtts: []
       };
       this.htmlFolder = encodeURIComponent(this.props.location.state.folder);
       this.selectEntityRelationship = this.selectEntityRelationship.bind(this);
@@ -44,13 +46,13 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       let d = schemaAnalysis(this.props.location.state.package, this.props.location.state.folder);
       d.then(response => { return response.json() })
         .then(data => {
-          const associatives: { [key: string]: string } = data.conceptual[ASSOCIATIVE_ENTITY];
-          delete data.conceptual[ASSOCIATIVE_ENTITY];
+          const associatives: { [key: string]: string } = data.conceptual[constants.ASSOCIATIVE_ENTITY];
+          delete data.conceptual[constants.ASSOCIATIVE_ENTITY];
           this.setState({tables: data.tables, conceptual: data.conceptual, associativeEntities: associatives});
         })
     }
 
-    selectEntityRelationship(entrel: { [key: string]: string}) {
+    selectEntityRelationship(entrel: any) {
       this.setState(entrel);
     }
 
@@ -59,17 +61,35 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       if (this.state.tables == undefined)
         return <Timer time={0} />;
       const selectedTables: { [key: string]: string } = {};
-      if (this.state.ent1 != null) selectedTables[this.state.ent1] = this.state.tables[this.state.ent1];
-      if (this.state.ent2 != null) selectedTables[this.state.ent2] = this.state.tables[this.state.ent2];
+      let showSelectedTables, generateGraphs, attSelect;
+      if (this.state.ent1 != null) {
+        selectedTables[this.state.ent1] = this.state.tables[this.state.ent1];
+        if (this.state.ent2 != null)
+          selectedTables[this.state.ent2] = this.state.tables[this.state.ent2];
+        showSelectedTables = <DbTables tables={selectedTables} folder={BUCKET + this.htmlFolder} />;
+      }
       let visType: string | undefined;
       switch (this.state.relationship) {
-        case ONE_TO_MANY:
-          visType = ONE_TO_MANY; break;
-        case MANY_TO_MANY:
-          visType = MANY_TO_MANY; break;
+        case constants.ONE_TO_MANY:
+          visType = constants.ONE_TO_MANY; break;
+        case constants.MANY_TO_MANY:
+          visType = constants.MANY_TO_MANY; break;
         default:
           if (this.state.ent1 && this.state.pKey1 && this.state.ent2 == undefined)
-            visType = BASIC_ENTITY;
+            visType = constants.BASIC_ENTITY;
+      }
+      if (this.state.ent1 && this.state.pKey1) {
+        if (visType)
+          generateGraphs =
+            <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
+                            conceptual={this.state.conceptual}
+                            visType={visType}
+                            ent1={this.state.ent1}
+                            pKey1={this.state.pKey1}
+                            ent2={this.state.ent2}
+                            relationship={this.state.relationship}
+                            associativeEntities={this.state.associativeEntities}
+                            selectedAttributes={this.state.selectAtts}/>;
       }
       return (
         <MuiThemeProvider>
@@ -81,11 +101,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
                   <Tab label="ERD" key={"ERD"}>
-                    {/*<img src={imgsrc} />*/}
+                    <img src={imgsrc} />
                   </Tab>
                   <Tab label="Graphs" key={"Graphs"}>
                     <div style={{ float: "left" }}>
-                      <EntitySelect tables={tableToPrimkeys(this.state.tables)}
+                      <EntitySelect tables={this.state.tables}
                                     conceptual={this.state.conceptual}
                                     selected={this.selectEntityRelationship}
                                     ent1={this.state.ent1}
@@ -94,24 +114,11 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                                     relationship={this.state.relationship}/>
                     </div>
                     <div style={{ float: "left", clear: "both" }}>
-                      {(() => {if (this.state.ent1 != undefined)
-                        return <DbTables tables={selectedTables} folder={BUCKET + this.htmlFolder} />})()}
+                      {showSelectedTables}
                     </div>
-                    {(() => {
-                      if (visType && this.state.ent1 && this.state.pKey1)
-                        return (
-                          <div style={{clear: "both"}}>
-                            <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
-                                            conceptual={this.state.conceptual}
-                                            visType={visType}
-                                            ent1={this.state.ent1}
-                                            pKey1={this.state.pKey1}
-                                            ent2={this.state.ent2}
-                                            relationship={this.state.relationship}
-                                            associativeEntities={this.state.associativeEntities}/>
-                          </div>
-                        );
-                    })()}
+                    <div style={{clear: "both" }}>
+                      {generateGraphs}
+                    </div>
                   </Tab>
                 </Tabs>
               </div>

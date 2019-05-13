@@ -1,3 +1,6 @@
+export const PRIMARY_KEYS = "primary_keys";
+export const FOREIGN_KEYS = "foreign_keys";
+export const NON_KEYS = "non_keys";
 export const SIZE = "size";
 export const SPACIALS = "spacials";
 export const NUMERICS = "numerics";
