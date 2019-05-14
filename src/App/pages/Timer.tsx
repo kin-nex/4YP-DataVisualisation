@@ -2,16 +2,13 @@ import React, { Component } from 'react';
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import CircularProgress from "material-ui/CircularProgress";
 
-interface State {
-  count: number
-}
-
-export default class Timer extends Component<{time: number}, State> {
+export default class Timer extends Component<{time: number}, {count: number}> {
   private interval: any;
   constructor (props: any) {
     super(props);
     this.state = {count: this.props.time}
   }
+
   componentDidMount(): void {
     this.interval = setInterval(this.tick.bind(this), 1000);
   }

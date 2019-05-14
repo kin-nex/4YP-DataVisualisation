@@ -34,33 +34,18 @@ export function getEntityDetails(dbDetails: { [key: string]: any }, visType: str
   })
 }
 
-export function getPotentialGraphs_onetomany(dbDetails: { [key: string]: any }, ent1: string, pKey1: string,
-                                             ent2: string, pKey2: string) {
-  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/gpg-onetomany', {
+export function getGraphData(dbDetails: {[key:string]: any}, chartType: string, ent1: string,
+                             pKey1: {[key:string]: string}, selectedAtts: any, ent2?: string) {
+  return fetch(' https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/getgraphdata', {
     method: 'POST',
     mode: 'cors',
     body: JSON.stringify({
       dbDetails: dbDetails,
+      type: chartType,
       ent1: ent1,
       pKey1: pKey1,
       ent2: ent2,
-      pKey2: pKey2
-    })
-  })
-}
-
-export function getPotentialGraphs_manytomany(dbDetails: { [key: string]: any }, ent1: string, pKey1: string,
-                                              ent2: string, pKey2: string, associativeEntity: string[]) {
-  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/gpg-manytomany', {
-    method: 'POST',
-    mode: 'cors',
-    body: JSON.stringify({
-      dbDetails: dbDetails,
-      ent1: ent1,
-      pKey1: pKey1,
-      ent2: ent2,
-      pKey2: pKey2,
-      associativeEntity: associativeEntity
+      attributes: selectedAtts
     })
   })
 }

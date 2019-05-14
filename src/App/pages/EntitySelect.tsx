@@ -21,7 +21,7 @@ interface State {
 }
 
 class EntitySelect extends Component<Props, State> {
-  constructor(props: any) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       selectablePKey: false,
@@ -110,7 +110,6 @@ class EntitySelect extends Component<Props, State> {
             return (
               <SelectField floatingLabelText={"Primary Key"} hintText={"Primary Key"}
                          value={this.props.ent1 + "," + this.props.pKey1} onChange={this.handleChangePrimSelect}>
-                {/*<MenuItem value={""} primaryText={"None"} />*/}
                 {this.identifyPrimKey()}
               </SelectField>
             );
