@@ -25,13 +25,22 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
       // schema: "",
       // username: "",
       // password: ""
-      dbtype: "mysql",
-      host: "data-visualisation.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
-      port: "3306",
-      dbname: "employees",
-      schema: "employees",
-      username: "Erkin",
-      password: "P4ssword"
+//////// MySQL - Employees
+      // dbtype: "mysql",
+      // host: "data-visualisation.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
+      // port: "3306",
+      // dbname: "employees",
+      // schema: "employees",
+      // username: "Erkin",
+      // password: "P4ssword"
+//////// Postgres - Mondial
+      dbtype: "pgsql",
+      host: "data-visualisation-pgsql.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
+      port: "5432",
+      dbname: "postgres",
+      schema: "public",
+      username: "postgres",
+      password: "maximum007"
     };
   }
 

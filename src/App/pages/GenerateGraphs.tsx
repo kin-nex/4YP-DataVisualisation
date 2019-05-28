@@ -6,7 +6,7 @@ import * as constants from "../Constants";
 import DrawGraph from "./DrawGraph";
 import Timer from "./Timer";
 
-const MAXENTRIESBARCHART = 100;
+const MAXENTRIESBARCHART = 50;
 const MAXENTRIESONETOMANY = 100;
 const MAXENTRIESSANKEY = 100;
 const MAXENTRIESCHORD = 100;

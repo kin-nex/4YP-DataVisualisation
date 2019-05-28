@@ -5,7 +5,9 @@ Algorithm for physical => conceptual model:
 3) Now pass through all the one-to-many relationships:
 	if the "many" side is a PK of that table:
 		if the "many" side has another PK related to another table's PK in a one-to-many relationship:
-			= We have a many-to-many relationship
+			= Many-to-many relationship
+		else if the "many" side has only a single FK (the "one" PK) and has more than 1 PK:
+			= Weak entity relationship
 		else:
 			= We have one-to-many relationship
 	else if the "many" side is a FK of that table:
@@ -17,4 +19,4 @@ Algorithm for physical => conceptual model:
 			else:
 				= Weak entity relationship			
 		else:
-			= Chained weak-entity relationship
+			= Chained weak-entity relationship 

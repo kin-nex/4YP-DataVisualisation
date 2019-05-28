@@ -84,9 +84,11 @@ class EntitySelect extends Component<Props, State> {
   }
 
   attributeSelect(tableInfo: any): JSX.Element[] {
-    const attributes: string[] = tableInfo[constants.PRIMARY_KEYS].concat(
-      tableInfo[constants.FOREIGN_KEYS]).concat(
-      tableInfo[constants.NON_KEYS]);
+    const attributes: string[] = [...new Set([
+      ...tableInfo[constants.PRIMARY_KEYS],
+      ...tableInfo[constants.FOREIGN_KEYS],
+      ...tableInfo[constants.NON_KEYS]
+    ])];
     if (this.props.pKey1)
       attributes.splice(attributes.indexOf(this.props.pKey1), 1);
     return attributes.map(att => <div style={{float: "left"}}>
