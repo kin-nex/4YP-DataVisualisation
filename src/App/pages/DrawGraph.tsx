@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
+import * as am4plugins_wordCloud from "@amcharts/amcharts4/plugins/wordCloud";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import * as constants from '../Constants';
 
@@ -9,8 +10,10 @@ am4core.useTheme(am4themes_animated);
 
 const CHARTTOAMCHART: {[key: string]: string} = {
   [constants.BAR]: "chartdiv",
-  [constants.SCATTER]: "chartdiv"
+  [constants.SCATTER]: "chartdiv",
+  [constants.CLOUD]: "chartdiv"
 };
+const WORDCLOUDCOUNT = 50;
 
 interface Props {
   chartType: string
@@ -22,12 +25,16 @@ interface Props {
 }
 
 interface State {
+  graphOptions: any
 }
 
 class DrawGraph extends Component<Props, State> {
   chart: any;
   constructor(props: Props) {
     super(props);
+    this.state = {
+      graphOptions: null
+    }
   }
 
   componentDidMount(): void {
@@ -36,8 +43,14 @@ class DrawGraph extends Component<Props, State> {
         this.chart = createBarChart(this.props.graphData, this.props.pKey1, this.props.selectedAttributes[0]);
         break;
       case constants.SCATTER:
-        console.log("HERE")
         this.chart = createScatterDiagram(this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
+        break;
+      case constants.CLOUD:
+        this.chart = createWordCloud(this.props.graphData, this.props.pKey1, this.props.selectedAttributes[0]);
+        break;
+      case constants.BUBBLE:
+        this.chart = createBubbleChart(this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
+        break;
       default:
         this.chart = null;
         break;
@@ -51,8 +64,11 @@ class DrawGraph extends Component<Props, State> {
 
   render() {
     return (
-      <div id={CHARTTOAMCHART[this.props.chartType]}
-           style={{ width: "80%", height: "500px" }}></div>
+      <div>
+        {/* Give the user graph options if any */}
+        <div id={CHARTTOAMCHART[this.props.chartType]}
+             style={{ width: "80%", height: "500px" }} />
+      </div>
     );
   }
 }
@@ -100,7 +116,31 @@ function createScatterDiagram(data: any, pKey: string, attributes: string[]): an
 
   chart.scrollbarX = new am4core.Scrollbar();
   chart.scrollbarY = new am4core.Scrollbar();
-  return chart
+  return chart;
+}
+
+function createBubbleChart(data: any, pKey: string, attributes: string[]): any {
+
+}
+
+function createWordCloud(data: any, pKey: string, attribute: string): any {
+  let chart = am4core.create("chartdiv", am4plugins_wordCloud.WordCloud);
+  let series = chart.series.push(new am4plugins_wordCloud.WordCloudSeries());
+
+  series.accuracy = 4;
+  series.step = 15;
+  series.rotationThreshold = 0.7;
+  series.minWordLength = 2;
+  series.labels.template.tooltipText = "{word}: {value}";
+  series.fontFamily = "Courier New";
+  series.maxFontSize = am4core.percent(30);
+
+  series.data = data.sort((obj1: any, obj2: any) => {
+    return obj2[attribute] - obj1[attribute]
+  }).slice(0, WORDCLOUDCOUNT);
+  series.dataFields.word = pKey;
+  series.dataFields.value = attribute;
+  return chart;
 }
 
 export default DrawGraph;
