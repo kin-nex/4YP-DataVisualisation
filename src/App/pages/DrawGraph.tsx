@@ -4,6 +4,7 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import * as am4plugins_wordCloud from "@amcharts/amcharts4/plugins/wordCloud";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import * as constants from '../Constants';
+import Toggle from "material-ui/Toggle";
 
 // Use animations
 am4core.useTheme(am4themes_animated);
@@ -13,6 +14,7 @@ const CHARTTOAMCHART: {[key: string]: string} = {
   [constants.SCATTER]: "chartdiv",
   [constants.CLOUD]: "chartdiv"
 };
+const TOGGLABLE = [constants.SCATTER, constants.BUBBLE];
 const WORDCLOUDCOUNT = 50;
 
 interface Props {
@@ -25,7 +27,7 @@ interface Props {
 }
 
 interface State {
-  graphOptions: any
+  switchAxes: boolean
 }
 
 class DrawGraph extends Component<Props, State> {
@@ -33,43 +35,54 @@ class DrawGraph extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      graphOptions: null
+      switchAxes: false
     }
   }
 
   componentDidMount(): void {
-    switch (this.props.chartType) {
-      case constants.BAR:
-        this.chart = createBarChart(this.props.graphData, this.props.pKey1, this.props.selectedAttributes[0]);
-        break;
-      case constants.SCATTER:
-        this.chart = createScatterDiagram(this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
-        break;
-      case constants.CLOUD:
-        this.chart = createWordCloud(this.props.graphData, this.props.pKey1, this.props.selectedAttributes[0]);
-        break;
-      case constants.BUBBLE:
-        this.chart = createBubbleChart(this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
-        break;
-      default:
-        this.chart = null;
-        break;
-    }
+    this.chart = drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
   }
+
 
   componentWillUnmount() {
     if (this.chart)
       this.chart.dispose();
   }
 
+  switchAxes(e: any) {
+    this.chart.invalidateData();
+    let atts = [...this.props.selectedAttributes];
+    if (!this.state.switchAxes) {
+      const temp = atts[0];
+      atts[0] = atts[1];
+      atts[1] = temp;
+    }
+    this.setState(prevState => ({ switchAxes: !prevState.switchAxes }));
+    drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, atts);
+  }
+
   render() {
+    let toggle;
+    if (TOGGLABLE.includes(this.props.chartType))
+      toggle = <Toggle label="Switch axes?" onToggle={e => this.switchAxes(e)}/>;
     return (
       <div>
         {/* Give the user graph options if any */}
+        {toggle}
         <div id={CHARTTOAMCHART[this.props.chartType]}
              style={{ width: "80%", height: "500px" }} />
       </div>
     );
+  }
+}
+
+function drawGraph(chartType: string, data: any, pKey1: string, attributes: string[]) {
+  switch (chartType) {
+    case constants.BAR:             return createBarChart(data, pKey1, attributes[0]);
+    case constants.SCATTER:         return createScatterDiagram(data, pKey1, attributes);
+    case constants.CLOUD:           return createWordCloud(data, pKey1, attributes[0]);
+    case constants.BUBBLE:          return createBubbleChart(data, pKey1, attributes);
+    default:                        return null;
   }
 }
 
