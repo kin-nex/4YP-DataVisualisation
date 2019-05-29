@@ -12,7 +12,8 @@ am4core.useTheme(am4themes_animated);
 const CHARTTOAMCHART: {[key: string]: string} = {
   [constants.BAR]: "chartdiv",
   [constants.SCATTER]: "chartdiv",
-  [constants.CLOUD]: "chartdiv"
+  [constants.CLOUD]: "chartdiv",
+  [constants.BUBBLE]: "chartdiv"
 };
 const TOGGLABLE = [constants.SCATTER, constants.BUBBLE];
 const WORDCLOUDCOUNT = 50;
@@ -31,9 +32,11 @@ interface State {
 }
 
 class DrawGraph extends Component<Props, State> {
-  chart: any;
+  private chart: any;
+  private switchedAxes: boolean;
   constructor(props: Props) {
     super(props);
+    this.switchedAxes = false;
     this.state = {
       switchAxes: false
     }
@@ -43,6 +46,19 @@ class DrawGraph extends Component<Props, State> {
     this.chart = drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
   }
 
+  componentWillUpdate(nextProps: Readonly<Props>, nextState: Readonly<State>, nextContext: any): void {
+    if (this.props.chartType != nextProps.chartType ||
+        JSON.stringify(this.props.graphData) != JSON.stringify(nextProps.graphData)) {
+      this.chart.dispose();
+      this.switchedAxes = false;
+    }
+  }
+  componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+    if (prevProps.chartType != this.props.chartType ||
+        JSON.stringify(prevProps.graphData) != JSON.stringify(this.props.graphData)) {
+      this.chart = drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, this.props.selectedAttributes);
+    }
+  }
 
   componentWillUnmount() {
     if (this.chart)
@@ -52,23 +68,24 @@ class DrawGraph extends Component<Props, State> {
   switchAxes(e: any) {
     this.chart.invalidateData();
     let atts = [...this.props.selectedAttributes];
-    if (!this.state.switchAxes) {
+    if (!this.switchedAxes) {
       const temp = atts[0];
       atts[0] = atts[1];
       atts[1] = temp;
     }
-    this.setState(prevState => ({ switchAxes: !prevState.switchAxes }));
+    this.switchedAxes = !this.switchedAxes;
+    // this.setState(prevState => ({ switchAxes: !prevState.switchAxes }));
     drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, atts);
   }
 
   render() {
     let toggle;
     if (TOGGLABLE.includes(this.props.chartType))
-      toggle = <Toggle label="Switch axes?" onToggle={e => this.switchAxes(e)}/>;
+      toggle = <Toggle label="Switch axes?" onToggle={e => this.switchAxes(e)} />;
     return (
       <div>
         {/* Give the user graph options if any */}
-        {toggle}
+        <div style={{ width: 200, margin: 15 }}>{toggle}</div>
         <div id={CHARTTOAMCHART[this.props.chartType]}
              style={{ width: "80%", height: "500px" }} />
       </div>
@@ -109,19 +126,19 @@ function createBarChart(data: any, pKey: string, attribute: string): any {
 function createScatterDiagram(data: any, pKey: string, attributes: string[]): any {
   let chart = am4core.create("chartdiv", am4charts.XYChart);
   chart.data = data;
-  let valueAxisX = chart.xAxes.push(new am4charts.ValueAxis());
-  valueAxisX.title.text = attributes[0];
-  valueAxisX.renderer.minGridDistance = 40;
+  let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  xAxis.title.text = attributes[0];
+  xAxis.renderer.minGridDistance = 40;
 
-  let valueAxisY = chart.yAxes.push(new am4charts.ValueAxis());
-  valueAxisY.title.text = attributes[1];
+  let yAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  yAxis.title.text = attributes[1];
 
-  let lineSeries = chart.series.push(new am4charts.LineSeries());
-  lineSeries.dataFields.valueX = attributes[0];
-  lineSeries.dataFields.valueY = attributes[1];
-  lineSeries.strokeOpacity = 0;
+  let series = chart.series.push(new am4charts.LineSeries());
+  series.dataFields.valueX = attributes[0];
+  series.dataFields.valueY = attributes[1];
+  series.strokeOpacity = 0;
 
-  let bullet = lineSeries.bullets.push(new am4charts.Bullet());
+  let bullet = series.bullets.push(new am4charts.Bullet());
 
   let point = bullet.createChild(am4core.Circle);
   point.width = 12;
@@ -133,7 +150,35 @@ function createScatterDiagram(data: any, pKey: string, attributes: string[]): an
 }
 
 function createBubbleChart(data: any, pKey: string, attributes: string[]): any {
+  let chart = am4core.create("chartdiv", am4charts.XYChart);
+  chart.data = data;
+  let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  xAxis.title.text = attributes[0];
+  xAxis.renderer.minGridDistance = 50;
 
+  let yAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  yAxis.title.text = attributes[1];
+  yAxis.renderer.minGridDistance = 50;
+
+  let series = chart.series.push(new am4charts.LineSeries());
+  series.dataFields.valueX = attributes[0];
+  series.dataFields.valueY = attributes[1];
+  series.dataFields.value = attributes[2];
+  series.strokeOpacity = 0;
+
+  let bullet = series.bullets.push(new am4charts.CircleBullet());
+  bullet.stroke = am4core.color("#ffffff");
+  bullet.tooltipText = "x:{valueX} y:{valueY}";
+  series.heatRules.push({
+    target: bullet.circle,
+    min: 5,
+    max: 50,
+    property: "radius"
+  });
+
+  chart.scrollbarX = new am4core.Scrollbar();
+  chart.scrollbarY = new am4core.Scrollbar();
+  return chart;
 }
 
 function createWordCloud(data: any, pKey: string, attribute: string): any {
