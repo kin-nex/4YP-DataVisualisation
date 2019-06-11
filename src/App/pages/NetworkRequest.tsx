@@ -49,3 +49,13 @@ export function getGraphData(dbDetails: {[key:string]: any}, chartType: string, 
     })
   })
 }
+
+export function reverseGeocode(latlongs: any) {
+  return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/reversegeocode', {
+    method: 'POST',
+    mode: 'cors',
+    body: JSON.stringify({
+      "coordinates": latlongs
+    })
+  })
+}

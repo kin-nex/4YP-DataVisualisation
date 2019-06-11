@@ -73,7 +73,7 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
             if (newValue == "mysql") {
               this.setState({"dbtype": newValue, "schema": this.state.dbname, "port": "3306"})
             } else if (newValue == "pgsql") {
-              this.setState({"dbtype": newValue, "port": "5432"})
+              this.setState({"dbtype": newValue, "schema": "public", "port": "5432"})
             } else if (newValue == "mssql") {
               this.setState({"dbtype": newValue, "port": "1433"})
             }

@@ -23,7 +23,7 @@ class DbTables extends Component<Props, {}> {
           <TableCell style={{textAlign: "center"}}>{data["non_keys"].join(", ")}</TableCell>
           <TableCell style={{textAlign: "center"}}>{data["rows"]}</TableCell>
           <TableCell style={{textAlign: "center", width: "30%"}}>
-            {/*<img src={this.props.folder + "/" + tableName + ".png"} width="100%" />*/}
+            <img src={this.props.folder + "/" + tableName + ".png"} width="100%" />
           </TableCell>
         </TableRow>
       )

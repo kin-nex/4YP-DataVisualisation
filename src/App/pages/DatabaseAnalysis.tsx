@@ -57,11 +57,10 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
     }
 
     render() {
-      const imgsrc = BUCKET + this.htmlFolder + "/summary/relationships.implied.large.png";
       if (this.state.tables == undefined)
         return <Timer time={0} />;
       const selectedTables: { [key: string]: string } = {};
-      let showSelectedTables, generateGraphs, attSelect;
+      let showSelectedTables, generateGraphs;
       if (this.state.ent1 != null) {
         selectedTables[this.state.ent1] = this.state.tables[this.state.ent1];
         if (this.state.ent2 != null)
@@ -101,7 +100,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                     <DbTables tables={this.state.tables} folder={BUCKET + this.htmlFolder}/>
                   </Tab>
                   <Tab label="ERD" key={"ERD"}>
-                    {/*<img src={imgsrc} />*/}
+                    <img src={BUCKET + this.htmlFolder + "/summary/relationships.implied.large.png"} />
                   </Tab>
                   <Tab label="Graphs" key={"Graphs"}>
                     <div style={{ float: "left" }}>

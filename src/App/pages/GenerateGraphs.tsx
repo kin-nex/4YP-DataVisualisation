@@ -45,7 +45,7 @@ class GenerateGraphs extends Component<Props, State> {
     }
   }
 
-  update(props: Props): void {
+  update(props: Props, updateEntInfo: boolean): void {
     let graphPromise: Promise<Response> | undefined;
     let pKey2: string | undefined;
     let associativeEntity: string[] | undefined;
@@ -53,28 +53,33 @@ class GenerateGraphs extends Component<Props, State> {
       pKey2 = this.getPrimKey2(props.conceptual[props.relationship]);
     if (props.ent2 && props.relationship == constants.MANY_TO_MANY)
       associativeEntity = this.getAssociativeEntity(props.ent1, props.ent2);
-    graphPromise = getEntityDetails(props.dbDetails, props.visType, props.ent1, props.pKey1, props.ent2,
+    if (updateEntInfo) graphPromise = getEntityDetails(props.dbDetails, props.visType, props.ent1, props.pKey1, props.ent2,
       pKey2, associativeEntity);
     if (graphPromise == undefined)
-      return;
-    graphPromise.then(result => {return result.json()}).then(result => {
-      if (props.visType == constants.BASIC_ENTITY)
-        this.setState({entityInfo: result, possibleGraphs: getGraphTypes_BasicEntity(result, props.ent1, props.pKey1,
-            props.selectedAttributes), needToUpdate: false});
-      else if (props.visType == constants.ONE_TO_MANY && props.ent2)
-        this.setState({entityInfo: result,
-          possibleGraphs: getGraphTypes_OneToMany(result, props.ent1, props.pKey1, props.ent2,
-          props.selectedAttributes), needToUpdate: false});
-      else if (props.visType == constants.MANY_TO_MANY && props.ent2)
-        this.setState({entityInfo: result,
-          possibleGraphs: getGraphTypes_ManyToMany(result, props.ent1, props.pKey1, props.ent2,
-            props.selectedAttributes), needToUpdate: false});
-    });
+      this.determineGraphs(props, this.state.entityInfo);
+    else
+      graphPromise.then(result => {return result.json()}).then(result => {
+        this.determineGraphs(props, result)
+      });
   }
 
-  componentDidMount(): void{ this.update(this.props); }
+  determineGraphs(props: Props, entInfo: any) {
+    if (props.visType == constants.BASIC_ENTITY)
+      this.setState({entityInfo: entInfo, possibleGraphs: getGraphTypes_BasicEntity(entInfo, props.ent1, props.pKey1,
+          props.selectedAttributes), needToUpdate: false});
+    else if (props.visType == constants.ONE_TO_MANY && props.ent2)
+      this.setState({entityInfo: entInfo,
+        possibleGraphs: getGraphTypes_OneToMany(entInfo, props.ent1, props.pKey1, props.ent2,
+          props.selectedAttributes), needToUpdate: false});
+    else if (props.visType == constants.MANY_TO_MANY && props.ent2)
+      this.setState({entityInfo: entInfo,
+        possibleGraphs: getGraphTypes_ManyToMany(entInfo, props.ent1, props.pKey1, props.ent2,
+          props.selectedAttributes), needToUpdate: false});
+  }
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State){
+  componentDidMount(): void{ this.update(this.props, true); }
+
+  static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (nextProps.selectedAttributes.length !== prevState.selectedAttLength)
       return {
         selectedAttLength: nextProps.selectedAttributes.length,
@@ -84,7 +89,10 @@ class GenerateGraphs extends Component<Props, State> {
   }
 
   componentDidUpdate(nextProps: Props, nextState: State): void {
-    if (this.state.needToUpdate) this.update(this.props);
+    const updateEntInfo = !(this.props.visType == nextProps.visType && this.props.ent1 == nextProps.ent1 &&
+      this.props.ent2 == nextProps.ent2);
+    console.log(updateEntInfo)
+    if (this.state.needToUpdate) this.update(this.props, updateEntInfo);
   }
 
   getPrimKey2(entries: any[]): string {
@@ -199,9 +207,11 @@ function getGraphTypes_BasicEntity(entityData: { [key: string]: any }, entity: s
   graphs[constants.SCATTER] = attsLength == 2 && selectAtts.every(att => scalars.includes(att));
   graphs[constants.BUBBLE] = attsLength == 3 && selectAtts.every(att => scalars.includes(att)) &&
     selectAtts.some(att => entityData[constants.NUMERICS].includes(att));
-  graphs[constants.CHOROPLETH] = attsLength == 2 &&
-    ((scalars.includes(selectAtts[0]) && entityData[constants.SPACIALS].includes(selectAtts[1])) ||
-      (scalars.includes(selectAtts[1]) && entityData[constants.SPACIALS].includes(selectAtts[0])));
+  const selectAttsUppercase = selectAtts.map(elem => elem.toUpperCase());
+  graphs[constants.CHOROPLETH] = attsLength == 3 &&
+    selectAtts.every(att => entityData[constants.NUMERICS].includes(att)) &&
+    ((selectAttsUppercase.includes("LAT") && selectAttsUppercase.includes("LONG")) ||
+    (selectAttsUppercase.includes("LATITUDE") && selectAttsUppercase.includes("LONGITUDE")));
   graphs[constants.CLOUD] = entityData[constants.LEXICALS].includes(pKey) && attsLength == 1 &&
     entityData[constants.NUMERICS].includes(selectAtts[0]);
   return graphs;
