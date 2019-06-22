@@ -13,11 +13,12 @@ const MAXENTRIESCHORD = 100;
 
 interface Props {
   dbDetails: any
-  conceptual: any
+  tables: any
   visType: string
   ent1: string
   pKey1: string
   ent2?: string
+  pKey2?: string
   relationship?: string
   associativeEntities?: any
   selectedAttributes: string[]
@@ -47,14 +48,11 @@ class GenerateGraphs extends Component<Props, State> {
 
   update(props: Props, updateEntInfo: boolean): void {
     let graphPromise: Promise<Response> | undefined;
-    let pKey2: string | undefined;
     let associativeEntity: string[] | undefined;
-    if (props.relationship == constants.ONE_TO_MANY || props.relationship == constants.MANY_TO_MANY)
-      pKey2 = this.getPrimKey2(props.conceptual[props.relationship]);
     if (props.ent2 && props.relationship == constants.MANY_TO_MANY)
       associativeEntity = this.getAssociativeEntity(props.ent1, props.ent2);
-    if (updateEntInfo) graphPromise = getEntityDetails(props.dbDetails, props.visType, props.ent1, props.pKey1, props.ent2,
-      pKey2, associativeEntity);
+    if (updateEntInfo) graphPromise = getEntityDetails(props.dbDetails, props.visType,
+                                                       props.ent1, props.pKey1, props.ent2, props.pKey2, associativeEntity);
     if (graphPromise == undefined)
       this.determineGraphs(props, this.state.entityInfo);
     else
@@ -67,9 +65,13 @@ class GenerateGraphs extends Component<Props, State> {
     if (props.visType == constants.BASIC_ENTITY)
       this.setState({entityInfo: entInfo, possibleGraphs: getGraphTypes_BasicEntity(entInfo, props.ent1, props.pKey1,
           props.selectedAttributes), needToUpdate: false});
-    else if (props.visType == constants.ONE_TO_MANY && props.ent2)
+    else if (props.visType == constants.WEAK_ENTITY && props.ent2 && props.pKey2)
       this.setState({entityInfo: entInfo,
-        possibleGraphs: getGraphTypes_OneToMany(entInfo, props.ent1, props.pKey1, props.ent2,
+        possibleGraphs: getGraphTypes_WeakEntity(entInfo, props.ent1, props.pKey1, props.ent2, props.pKey2,
+          props.selectedAttributes), needToUpdate: false});
+    else if (props.visType == constants.ONE_TO_MANY && props.ent2 && props.pKey2)
+      this.setState({entityInfo: entInfo,
+        possibleGraphs: getGraphTypes_OneToMany(entInfo, props.ent1, props.pKey1, props.ent2, props.pKey2,
           props.selectedAttributes), needToUpdate: false});
     else if (props.visType == constants.MANY_TO_MANY && props.ent2)
       this.setState({entityInfo: entInfo,
@@ -77,7 +79,7 @@ class GenerateGraphs extends Component<Props, State> {
           props.selectedAttributes), needToUpdate: false});
   }
 
-  componentDidMount(): void{ this.update(this.props, true); }
+  componentDidMount(): void { this.update(this.props, true); }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     if (nextProps.selectedAttributes.length !== prevState.selectedAttLength)
@@ -89,18 +91,9 @@ class GenerateGraphs extends Component<Props, State> {
   }
 
   componentDidUpdate(nextProps: Props, nextState: State): void {
-    const updateEntInfo = !(this.props.visType == nextProps.visType && this.props.ent1 == nextProps.ent1 &&
-      this.props.ent2 == nextProps.ent2);
-    console.log(updateEntInfo)
-    if (this.state.needToUpdate) this.update(this.props, updateEntInfo);
-  }
-
-  getPrimKey2(entries: any[]): string {
-    const ent1 = this.props.ent1, pKey1 = this.props.pKey1, ent2 = this.props.ent2;
-    for (let entry of entries)
-      if (entry.ent1 == ent1 && entry.att1 == pKey1 && entry.ent2 == ent2)
-        return entry.att2;
-    return "Error";
+    // const updateEntInfo = !(this.props.visType == nextProps.visType && this.props.ent1 == nextProps.ent1 &&
+    //   this.props.ent2 == nextProps.ent2);
+    if (this.state.needToUpdate || (this.props.visType != nextProps.visType)) this.update(this.props, true);
   }
 
   getAssociativeEntity(ent1: string, ent2: string): string[] {
@@ -112,28 +105,20 @@ class GenerateGraphs extends Component<Props, State> {
     return possibleAssociatives;
   }
 
-  find(attributes: string[]): {[key: string]: string} {
-    let dataTypes: {[key: string]: string} = {};
-    for (let attribute of attributes)
-      if (this.state.entityInfo[constants.NUMERICS].includes(attribute)) {
-        dataTypes[attribute] = constants.NUMERICS;
-      }else if (this.state.entityInfo[constants.SPACIALS].includes(attribute))
-        dataTypes[attribute] = constants.SPACIALS;
-      else if (this.state.entityInfo[constants.TEMPORALS].includes(attribute))
-        dataTypes[attribute] = constants.TEMPORALS;
-      else if (this.state.entityInfo[constants.LEXICALS].includes(attribute))
-        dataTypes[attribute] = constants.LEXICALS;
-    return dataTypes;
-  }
-
   handleGraphSelect = (e: object, chartType: string)  => {
     this.setState({chartType: chartType});
-    let pKeyDatatype = this.find([this.props.pKey1]);
-    let attDatatypes = this.find(this.props.selectedAttributes);
-    getGraphData(this.props.dbDetails, chartType, this.props.ent1, pKeyDatatype,
-                 attDatatypes, this.props.ent2).then(raw_data => {
-      return raw_data.json()
-    }).then(data => { this.setState({graphData: data}); })
+    let attributes: string[] = this.props.selectedAttributes;
+    if ([constants.LINE, constants.STACKEDBAR, constants.GROUPEDBAR, constants.SPIDER].includes(chartType) &&
+        this.props.ent2) {
+      let ent2Data = this.props.tables[this.props.ent2];
+      let changingPKey: string = ent2Data[constants.PRIMARY_KEYS].filter((e: string) =>
+                        !ent2Data[constants.FOREIGN_KEYS].includes(e))[0];
+      attributes = [changingPKey].concat(attributes);
+    }
+    getGraphData(this.props.dbDetails, chartType, this.props.ent1, this.props.pKey1, attributes,
+                 this.props.ent2, this.props.pKey2)
+      .then(raw_data => { return raw_data.json() })
+      .then(data => { this.setState({graphData: data}); })
   };
 
   generateEntityButtons(graphData: { [key: string]: boolean }) {
@@ -151,9 +136,10 @@ class GenerateGraphs extends Component<Props, State> {
       [constants.GROUPEDBAR]: "Grouped bar chart",
       [constants.SPIDER]: "Spider chart",
       //---------- One to Many ----------//
-      [constants.TREE]: "Tree chart",
+      [constants.TREE]: "Treemap",
       [constants.HIERARCHY]: "Hierarchy tree",
       [constants.CIRCLE]: "Circle packing",
+      [constants.SUNBURST]: "Sunburst chart",
       //---------- Many to Many ----------//
       [constants.SANKEY]: "Sankey diagram",
       [constants.CHORD]: "Chord diagram"
@@ -163,7 +149,8 @@ class GenerateGraphs extends Component<Props, State> {
       buttons.push(<RaisedButton label={chartTypes[key]} primary={true} onClick={(e) => this.handleGraphSelect(e, key)}
                                  disabled={!enabledState} style={{margin: 12}}/>);
     if (buttons.length == 0)
-      buttons.push(<RaisedButton label={"No graphs possible (have you selected a View?)"} disabled={true} style={{ margin: 12 }}/>);
+      buttons.push(<RaisedButton label={"No graphs possible (have you selected a View?)"}
+                                 disabled={true} style={{ margin: 12 }}/>);
     return buttons;
   }
 
@@ -171,13 +158,14 @@ class GenerateGraphs extends Component<Props, State> {
     const buttons = this.generateEntityButtons(this.state.possibleGraphs);
     let graph;
     if (this.state.chartType && this.state.graphData == undefined)
-      graph = <Timer  time={-1}/>;
+      graph = <Timer time={-1}/>;
     else if (this.state.chartType && this.state.graphData)
       graph = <DrawGraph chartType={this.state.chartType}
                          graphData={this.state.graphData}
                          ent1={this.props.ent1}
                          pKey1={this.props.pKey1}
                          ent2={this.props.ent2}
+                         pKey2={this.props.pKey2}
                          selectedAttributes={this.props.selectedAttributes}/>;
     return (
       <div>
@@ -217,39 +205,62 @@ function getGraphTypes_BasicEntity(entityData: { [key: string]: any }, entity: s
   return graphs;
 }
 
+function getGraphTypes_WeakEntity(entityData: { [key: string]: any }, ent1: string, pKey1: string,
+                                  ent2: string, pKey2: string, selectAtts: string[]): { [key: string]: boolean } {
+  const cardinalityStrongEnt = entityData[constants.SIZE][ent1];
+  const cardinalityWeakEnt = entityData[constants.SIZE][ent2];
+  const attsLength = selectAtts.length;
+  const scalars = entityData[ent2][constants.NUMERICS].concat(entityData[ent2][constants.TEMPORALS]);
+  let graphs: { [key: string]: boolean } = {
+    [constants.LINE]: false, [constants.STACKEDBAR]: false, [constants.GROUPEDBAR]: false, [constants.SPIDER]: false
+  };
+  if (attsLength == 1 && scalars.includes(selectAtts[0])) {
+    // TODO: Fix to "20"
+    if (cardinalityStrongEnt >= 1 && cardinalityStrongEnt <= 2000000) {
+      graphs[constants.LINE] = scalars.includes(pKey2);
+      graphs[constants.STACKEDBAR] = cardinalityWeakEnt >= 1 && cardinalityWeakEnt <= 20;
+      graphs[constants.GROUPEDBAR] = graphs[constants.STACKEDBAR];
+    }
+    graphs[constants.SPIDER] = cardinalityStrongEnt >= 3 && cardinalityStrongEnt <= 10 &&
+                               cardinalityWeakEnt >= 1 && cardinalityWeakEnt <= 20;
+  }
+  return graphs;
+}
+
+
 function getGraphTypes_OneToMany(entityData: { [key: string]: any }, ent1: string, pKey1: string,
-                                 ent2: string, selectAtts: string[]): { [key: string]: boolean } {
+                                 ent2: string, pKey2: string, selectAtts: string[]): { [key: string]: boolean } {
   const numEntriesOneSide = entityData[constants.SIZE][ent1];
   const maxEntriesManySide = entityData[constants.SIZE][ent2];
   let graphs: { [key: string]: boolean } = {
-    [constants.HIERARCHY]: false, [constants.TREE]: false, [constants.CIRCLE]: false
+    [constants.HIERARCHY]: false, [constants.TREE]: false, [constants.CIRCLE]: false, [constants.SUNBURST]: false
   };
   if (1 <= numEntriesOneSide && numEntriesOneSide <= MAXENTRIESONETOMANY &&
       1 <= maxEntriesManySide && maxEntriesManySide <= MAXENTRIESONETOMANY) {
-    graphs[constants.HIERARCHY] = true;
-    // If we have a scalar attribute then we're good to go
-    delete entityData[constants.NUMERICS][pKey1]; delete entityData[constants.TEMPORALS][pKey1];
-    const validScalar = selectAtts.length == 1 &&
-      entityData[constants.NUMERICS].concat(entityData[constants.TEMPORALS]).includes(selectAtts[0]);
-    graphs = {[constants.HIERARCHY]: true, [constants.TREE]: validScalar, [constants.CIRCLE]: validScalar};
+    // If we have a scalar attribute then we can go ahead and graph
+    const scalars = entityData[ent2][constants.NUMERICS].concat(entityData[ent2][constants.TEMPORALS]);
+    const validScalar = selectAtts.length == 2 && scalars.some((elem: string) => scalars.includes(elem));
+    graphs = {[constants.HIERARCHY]: true, [constants.TREE]: validScalar, [constants.CIRCLE]: validScalar,
+              [constants.SUNBURST]: validScalar};
   }
   return graphs;
 }
 
 function getGraphTypes_ManyToMany(entityData: { [key: string]: any }, ent1: string, pKey1: string,
                                   ent2: string, selectAtts: string[]): { [key: string]: boolean } {
-  const sizes = entityData[constants.SIZE];
-  const validScalar = selectAtts.length == 1 &&
-    entityData[constants.NUMERICS].concat(entityData[constants.TEMPORALS]).includes(selectAtts[0]);
-  let graphs: { [key: string]: boolean } = {
-    [constants.CHORD]: false, [constants.SANKEY]: false
-  };
-  if (sizes[ent1] >= 1 && sizes[ent2] >= 1 && validScalar)
-    if (sizes[ent1] <= MAXENTRIESSANKEY && sizes[ent2] <= MAXENTRIESSANKEY)
-      graphs = {[constants.CHORD]: true, [constants.SANKEY]: true};
-    else if (sizes[ent1] <= MAXENTRIESCHORD && sizes[ent2] <= MAXENTRIESCHORD)
-      graphs[constants.CHORD] = true;
-  return graphs;
+  // const sizes = entityData[constants.SIZE];
+  // const validScalar = selectAtts.length == 1 &&
+  //   entityData[constants.NUMERICS].concat(entityData[constants.TEMPORALS]).includes(selectAtts[0]);
+  // let graphs: { [key: string]: boolean } = {
+  //   [constants.CHORD]: false, [constants.SANKEY]: false
+  // };
+  // if (sizes[ent1] >= 1 && sizes[ent2] >= 1 && validScalar)
+  //   if (sizes[ent1] <= MAXENTRIESSANKEY && sizes[ent2] <= MAXENTRIESSANKEY)
+  //     graphs = {[constants.CHORD]: true, [constants.SANKEY]: true};
+  //   else if (sizes[ent1] <= MAXENTRIESCHORD && sizes[ent2] <= MAXENTRIESCHORD)
+  //     graphs[constants.CHORD] = true;
+  // return graphs;
+  return {}
 }
 
 export default GenerateGraphs;

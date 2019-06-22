@@ -18,6 +18,7 @@ interface State {
   ent1?: string
   pKey1?: string
   ent2?: string
+  pKey2?: string
   relationship?: string
   associativeEntities?: any
   selectAtts: string[]
@@ -34,6 +35,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         ent1: undefined,
         pKey1: undefined,
         ent2: undefined,
+        pKey2: undefined,
         relationship: undefined,
         associativeEntities: undefined,
         selectAtts: []
@@ -69,10 +71,10 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
       }
       let visType: string | undefined;
       switch (this.state.relationship) {
+        case constants.WEAK_ENTITY:
         case constants.ONE_TO_MANY:
-          visType = constants.ONE_TO_MANY; break;
         case constants.MANY_TO_MANY:
-          visType = constants.MANY_TO_MANY; break;
+          visType = this.state.relationship; break;
         default:
           if (this.state.ent1 && this.state.pKey1 && this.state.ent2 == undefined)
             visType = constants.BASIC_ENTITY;
@@ -81,11 +83,12 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
         if (visType)
           generateGraphs =
             <GenerateGraphs dbDetails={this.props.location.state.dbDetails}
-                            conceptual={this.state.conceptual}
+                            tables={this.state.tables}
                             visType={visType}
                             ent1={this.state.ent1}
                             pKey1={this.state.pKey1}
                             ent2={this.state.ent2}
+                            pKey2={this.state.pKey2}
                             relationship={this.state.relationship}
                             associativeEntities={this.state.associativeEntities}
                             selectedAttributes={this.state.selectAtts}/>;
@@ -110,6 +113,7 @@ class DatabaseAnalysis extends Component<{location: any}, State> {
                                     ent1={this.state.ent1}
                                     pKey1={this.state.pKey1}
                                     ent2={this.state.ent2}
+                                    pKey2={this.state.pKey2}
                                     relationship={this.state.relationship}/>
                     </div>
                     <div style={{ float: "left", clear: "both" }}>

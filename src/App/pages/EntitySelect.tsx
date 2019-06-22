@@ -12,6 +12,7 @@ interface Props {
   ent1?: string
   pKey1?: string
   ent2?: string
+  pKey2?: string
   relationship?: string
 }
 
@@ -35,9 +36,9 @@ class EntitySelect extends Component<Props, State> {
 
   identifyPrimKey(): JSX.Element[] {
     if (this.props.ent1 != undefined && this.state.selectablePKey)
-        return this.props.tables[this.props.ent1][constants.PRIMARY_KEYS].map((pKey: string) => {
-          return <MenuItem value={this.props.ent1 + "," + pKey} primaryText={[pKey]} />
-        });
+      return this.props.tables[this.props.ent1][constants.PRIMARY_KEYS].map((pKey: string) => {
+        return <MenuItem value={this.props.ent1 + "," + pKey} primaryText={[pKey]} />
+      });
     return []
   }
 
@@ -45,9 +46,12 @@ class EntitySelect extends Component<Props, State> {
     if (this.props.ent1 == undefined) return [];
     let possible: JSX.Element[] = [];
     for (let [rel, ents] of Object.entries(this.props.conceptual))
-      for (let entry of ents)
+      for (let entry of ents) {
         if (entry.ent1 == this.props.ent1 && entry.att1 == this.props.pKey1)
-          possible.push(<RadioButton key={[rel, entry.ent2].join(",")} value={[rel, entry.ent2].join(",")} label={"(" + rel + ") " + entry.ent2}/>);
+          possible.push(<RadioButton key={[rel, entry.ent2, entry.att2].join(",")}
+                                     value={[rel, entry.ent2, entry.att2].join(",")}
+                                     label={"(" + rel + ") " + entry.ent2 + " : " + entry.att2}/>);
+      }
     return possible;
   }
 
@@ -55,10 +59,12 @@ class EntitySelect extends Component<Props, State> {
     let pKeys = this.props.tables[value][constants.PRIMARY_KEYS];
     // Check if only 1 primary key
     if (pKeys.length == 1) {
-      this.props.selected({ent1: value, pKey1: pKeys[0], ent2: undefined, relationship: undefined, selectAtts: []});
+      this.props.selected({ent1: value, pKey1: pKeys[0], ent2: undefined, pKey2: undefined,
+        relationship: undefined, selectAtts: []});
       this.setState({selectablePKey: false, selectAtts: []});
     } else {
-      this.props.selected({ent1: value, pKey1: undefined, ent2: undefined, relationship: undefined, selectAtts: []});
+      this.props.selected({ent1: value, pKey1: undefined, ent2: undefined, pKey2: undefined,
+        relationship: undefined, selectAtts: []});
       this.setState({selectablePKey: true, selectAtts: []});
     }
   };
@@ -71,7 +77,7 @@ class EntitySelect extends Component<Props, State> {
 
   handleChangeSecondEnt = (event: object, value: string) => {
     const values = value.split(",");
-    this.props.selected({relationship: values[0], ent2: values[1]});
+    this.props.selected({relationship: values[0], ent2: values[1], pKey2: values[2]});
   };
 
   updateAttCheck(e: object, att: string) {
@@ -89,17 +95,19 @@ class EntitySelect extends Component<Props, State> {
       ...tableInfo[constants.FOREIGN_KEYS],
       ...tableInfo[constants.NON_KEYS]
     ])];
-    if (this.props.pKey1)
+    if (this.props.pKey2)
+      attributes.splice(attributes.indexOf(this.props.pKey2), 1);
+    else if (this.props.pKey1)
       attributes.splice(attributes.indexOf(this.props.pKey1), 1);
     return attributes.map(att => <div style={{float: "left"}}>
-      <Checkbox checked={this.state.selectAtts.includes(att)} label={att} value={this.props.ent1 + "," + att}
+      <Checkbox checked={this.state.selectAtts.includes(att)} label={att}
                 onCheck={e => this.updateAttCheck(e, att)} style={{margin: 15}} /></div>);
   }
 
   render () {
     let attSelect;
     if (this.props.ent1 && this.props.pKey1)
-      attSelect = this.attributeSelect(this.props.tables[this.props.ent1]);
+      attSelect = this.attributeSelect(this.props.tables[(this.props.ent2) ? this.props.ent2 : this.props.ent1]);
     return (
       <div>
         <div style={{float: "left", margin: 25}}>
@@ -111,7 +119,7 @@ class EntitySelect extends Component<Props, State> {
           {(() => {if (this.props.ent1 != undefined && this.state.selectablePKey) {
             return (
               <SelectField floatingLabelText={"Primary Key"} hintText={"Primary Key"}
-                         value={this.props.ent1 + "," + this.props.pKey1} onChange={this.handleChangePrimSelect}>
+                           value={this.props.ent1 + "," + this.props.pKey1} onChange={this.handleChangePrimSelect}>
                 {this.identifyPrimKey()}
               </SelectField>
             );

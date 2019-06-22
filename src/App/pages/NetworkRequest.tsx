@@ -34,8 +34,8 @@ export function getEntityDetails(dbDetails: { [key: string]: any }, visType: str
   })
 }
 
-export function getGraphData(dbDetails: {[key:string]: any}, chartType: string, ent1: string,
-                             pKey1: {[key:string]: string}, selectedAtts: any, ent2?: string) {
+export function getGraphData(dbDetails: {[key:string]: any}, chartType: string, ent1: string, pKey1: string,
+                             attributes: string[], ent2?: string, pKey2?: string) {
   return fetch('https://w4ri4czepi.execute-api.eu-west-2.amazonaws.com/beta/getgraphdata', {
     method: 'POST',
     mode: 'cors',
@@ -44,8 +44,9 @@ export function getGraphData(dbDetails: {[key:string]: any}, chartType: string, 
       type: chartType,
       ent1: ent1,
       pKey1: pKey1,
+      attributes: attributes,
       ent2: ent2,
-      attributes: selectedAtts
+      pKey2: pKey2,
     })
   })
 }

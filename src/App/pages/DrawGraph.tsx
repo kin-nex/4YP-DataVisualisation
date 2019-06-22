@@ -3,6 +3,7 @@ import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import * as am4maps from "@amcharts/amcharts4/maps";
 import * as am4plugins_wordCloud from "@amcharts/amcharts4/plugins/wordCloud";
+import * as am4plugins_sunburst from "@amcharts/amcharts4/plugins/sunburst";
 import am4geodata_worldHigh from "@amcharts/amcharts4-geodata/worldHigh";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import * as constants from '../Constants';
@@ -12,13 +13,6 @@ import {reverseGeocode} from "./NetworkRequest";
 // Use animations
 am4core.useTheme(am4themes_animated);
 
-const CHARTTOAMCHART: {[key: string]: string} = {
-  [constants.BAR]: "chartdiv",
-  [constants.SCATTER]: "chartdiv",
-  [constants.CLOUD]: "chartdiv",
-  [constants.CHOROPLETH]: "chartdiv",
-  [constants.BUBBLE]: "chartdiv"
-};
 const TOGGLABLE = [constants.SCATTER, constants.BUBBLE];
 const WORDCLOUDCOUNT = 100;
 
@@ -28,6 +22,7 @@ interface Props {
   ent1: string
   pKey1: string
   ent2?: string
+  pKey2?: string
   selectedAttributes: string[]
 }
 
@@ -56,33 +51,24 @@ class DrawGraph extends Component<Props, State> {
 
   componentDidMount(): void {
     this.chart = this.drawGraph(this.props.chartType, this.props.graphData,
-                                this.props.pKey1, this.props.selectedAttributes);
-  }
-
-  componentWillUpdate(nextProps: Readonly<Props>, nextState: Readonly<State>, nextContext: any): void {
-    if (this.props.chartType != nextProps.chartType ||
-        JSON.stringify(this.props.graphData) != JSON.stringify(nextProps.graphData)) {
-      if (this.chart) this.chart.dispose();
-      this.switchedAxes = false;
-    }
+                                this.props.pKey1, this.props.selectedAttributes, this.props.pKey2);
   }
 
   componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
-    if (JSON.stringify(prevProps.graphData) != JSON.stringify(this.props.graphData)) {
+    if (prevProps.chartType != this.props.chartType ||
+      JSON.stringify(prevProps.graphData) != JSON.stringify(this.props.graphData)) {
       if (this.chart) this.chart.dispose();
       this.chart = this.drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1,
-        this.props.selectedAttributes);
+        this.props.selectedAttributes, this.props.pKey2);
     } else if (prevProps.chartType == this.props.chartType &&
                JSON.stringify(prevState.updatedGraphData) != JSON.stringify(this.state.updatedGraphData)) {
       if (this.chart) this.chart.dispose();
       this.chart = this.drawGraph(this.props.chartType, this.state.updatedGraphData, this.props.pKey1,
-                                  this.props.selectedAttributes);
+                                  this.props.selectedAttributes, this.props.pKey2);
     }
   }
 
-  componentWillUnmount() {
-    if (this.chart) this.chart.dispose();
-  }
+  componentWillUnmount(): void { if (this.chart) this.chart.dispose(); }
 
   switchAxes(e: any) {
     this.chart.invalidateData();
@@ -93,7 +79,7 @@ class DrawGraph extends Component<Props, State> {
       atts[1] = temp;
     }
     this.switchedAxes = !this.switchedAxes;
-    this.drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, atts);
+    this.drawGraph(this.props.chartType, this.props.graphData, this.props.pKey1, atts, this.props.pKey2);
   }
 
   updateChoroplethData(data: any, attributes: string[]) {
@@ -118,7 +104,7 @@ class DrawGraph extends Component<Props, State> {
     });
   }
 
-  drawGraph(chartType: string, data: any, pKey1: string, attributes: string[]) {
+  drawGraph(chartType: string, data: any, pKey1: string, attributes: string[], pKey2?: string) {
     switch (chartType) {
       case constants.BAR:             return createBarChart(data, pKey1, attributes[0]);
       case constants.SCATTER:         return createScatterDiagram(data, pKey1, attributes);
@@ -126,10 +112,13 @@ class DrawGraph extends Component<Props, State> {
       case constants.BUBBLE:          return createBubbleChart(data, pKey1, attributes);
       case constants.CHOROPLETH:      this.updateChoroplethData(data, attributes);
                                       return createChoroplethChart(data);
+      case constants.STACKEDBAR:      if (pKey2) return createStackedBarChart(data, pKey1, pKey2); break;
+      case constants.GROUPEDBAR:      if (pKey2) return createGroupedBarChart(data, pKey1, pKey2); break;
+      case constants.TREE:            if (pKey2) return createTreeMap(data); break;
+      case constants.SUNBURST:        if (pKey2) return createSunburstChart(data); break;
       default:                        return null;
     }
   }
-
 
   render() {
     let toggle;
@@ -139,8 +128,7 @@ class DrawGraph extends Component<Props, State> {
       <div>
         {/* Give the user graph options if any */}
         <div style={{ width: 200, margin: 15 }}>{toggle}</div>
-        <div id={CHARTTOAMCHART[this.props.chartType]}
-             style={{ width: "80%", height: "500px" }} />
+        <div id="chartdiv" style={{ width: "90%", height: "600px" }} />
       </div>
     );
   }
@@ -218,7 +206,7 @@ function createBubbleChart(data: any, pKey: string, attributes: string[]): any {
 
   let bullet = series.bullets.push(new am4charts.CircleBullet());
   bullet.stroke = am4core.color("#ffffff");
-  bullet.tooltipText = "x:{valueX} y:{valueY}";
+  bullet.tooltipText = "key:{" + pKey + "}\n" + attributes[2] + ":{value}";
   series.heatRules.push({
     target: bullet.circle,
     min: 5,
@@ -234,57 +222,45 @@ function createBubbleChart(data: any, pKey: string, attributes: string[]): any {
 function ciEquals(a: string, b: string) {
   return a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0
 }
-function combineDupes(data: any) {
-  console.log(data)
-  let countryValueMap: {[key: string]: number} = {};
-  for (let entry of data)
-    if (entry.id in countryValueMap) countryValueMap[entry.id] += Number(entry.value);
-    else countryValueMap[entry.id] = Number(entry.value);
-  let dataArray: any[] = [];
-  for (let [id, value] of Object.entries(countryValueMap))
-    dataArray.push({id: id, value: value});
-  return dataArray;
-}
 
 function createChoroplethChart(data: any) {
   let chart = am4core.create("chartdiv", am4maps.MapChart);
-  // Set map definition
-  chart.geodata = am4geodata_worldHigh;
 
-  // Set projection
+  chart.geodata = am4geodata_worldHigh;
   chart.projection = new am4maps.projections.Mercator();
 
-  // Center on the groups by default
+  // Set default starting point
   chart.homeZoomLevel = 6;
   chart.homeGeoPoint = { longitude: 10, latitude: 51 };
 
-  // Create map polygon series
   let polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
 
   //Set min/max fill color for each area
   polygonSeries.heatRules.push({
     property: "fill",
     target: polygonSeries.mapPolygons.template,
-    min: chart.colors.getIndex(1).brighten(1),
-    max: chart.colors.getIndex(1).brighten(-0.3)
+    min: chart.colors.getIndex(1).brighten(2),
+    max: chart.colors.getIndex(1).brighten(-0.7)
   });
 
   polygonSeries.useGeodata = true;
-  // Make map load polygon data (state shapes and names) from GeoJSON
-
   chart.projection = new am4maps.projections.Mercator();
-  // Configure series tooltip
+
   let polygonTemplate = polygonSeries.mapPolygons.template;
   polygonTemplate.tooltipText = "{name}: {value}";
   polygonTemplate.nonScalingStroke = true;
   polygonTemplate.strokeWidth = 0.5;
 
-  // Create hover state and set alternative fill color
   let hs = polygonTemplate.states.create("hover");
   hs.properties.fill = chart.colors.getIndex(1).brighten(-0.5);
-  const combinedData = combineDupes(data);
-  console.log(combinedData);
-  console.log(JSON.stringify(combinedData.slice(1, 500)));
+  // Combine duplicates
+  let countryValueMap: {[key: string]: number} = {};
+  for (let entry of data)
+    if (entry.id in countryValueMap) countryValueMap[entry.id] += Number(entry.value);
+    else countryValueMap[entry.id] = Number(entry.value);
+  let combinedData: any[] = [];
+  for (let [id, value] of Object.entries(countryValueMap))
+    combinedData.push({id: id, value: value});
   polygonSeries.data = (Object.keys(combinedData[0]).length == 2) ? combinedData.slice(1, 500) : [];
   return chart;
 }
@@ -301,12 +277,207 @@ function createWordCloud(data: any, pKey: string, attribute: string): any {
   series.fontFamily = "Courier New";
   series.maxFontSize = am4core.percent(30);
 
-  series.data = data.sort((obj1: any, obj2: any) => {
+  // Combine duplicates
+  let wordValueMap: {[key: string]: number} = {};
+  for (let entry of data)
+    if (entry[pKey] in wordValueMap)
+      wordValueMap[entry[pKey]] += Number(entry[attribute]);
+    else wordValueMap[entry[pKey]] = Number(entry[attribute]);
+  let combinedData: any[] = [];
+  for (let [key, value] of Object.entries(wordValueMap))
+    combinedData.push({[pKey]: key, [attribute]: value});
+
+  series.data = combinedData.sort((obj1: any, obj2: any) => {
     return obj2[attribute] - obj1[attribute]
   }).slice(0, WORDCLOUDCOUNT);
   series.dataFields.word = pKey;
   series.dataFields.value = attribute;
   return chart;
+}
+
+function createStackedBarChart(data: any, pKey1: string, pKey2: string): any {
+  // Our data has more values than just pKey and attributes, all columns make up the primary key
+  let chart = am4core.create("chartdiv", am4charts.XYChart);
+  chart.data = data;
+  let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = pKey2;
+  categoryAxis.renderer.grid.template.location = 0;
+
+  let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  valueAxis.renderer.inside = true;
+  valueAxis.renderer.labels.template.disabled = true;
+  valueAxis.min = 0;
+
+  function createSeries(name: string) {
+    let series = chart.series.push(new am4charts.ColumnSeries());
+    series.name = name;
+    series.dataFields.valueY = name;
+    series.dataFields.categoryX = pKey2;
+    series.sequencedInterpolation = true;
+
+    series.stacked = true;
+
+    series.columns.template.width = am4core.percent(60);
+    series.columns.template.tooltipText = "[bold]{name}[/]\n{categoryX}: {valueY}";
+
+    let labelBullet = series.bullets.push(new am4charts.LabelBullet());
+    labelBullet.label.text = "{valueY}";
+    labelBullet.locationY = 0.5;
+
+    return series;
+  }
+  let keys: string[] = [];
+  let possibleKeys: string[] = [];
+  for (let dataObj of data) {
+    possibleKeys = Object.keys(dataObj);
+    possibleKeys.splice(keys.indexOf(pKey2), 1);
+    keys = keys.concat(possibleKeys);
+  }
+  keys = [...new Set(keys)];
+  for (let key of keys)
+    createSeries(key);
+
+  chart.legend = new am4charts.Legend();
+  return chart;
+}
+
+function createGroupedBarChart(data: any, pKey1: string, pKey2: string) {
+  let chart = am4core.create("chartdiv", am4charts.XYChart);
+  chart.data = data;
+
+  let categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+  categoryAxis.dataFields.category = pKey2;
+  categoryAxis.numberFormatter.numberFormat = "#";
+  categoryAxis.renderer.inversed = true;
+  categoryAxis.renderer.grid.template.location = 0;
+  categoryAxis.renderer.cellStartLocation = 0.1;
+  categoryAxis.renderer.cellEndLocation = 0.9;
+
+  let valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+  valueAxis.renderer.opposite = true;
+
+  function createSeries(name: string) {
+    let series = chart.series.push(new am4charts.ColumnSeries());
+    series.name = name;
+    series.dataFields.valueX = name;
+    series.dataFields.categoryY = pKey2;
+    series.columns.template.tooltipText = "{name}: [bold]{valueX}[/]";
+    series.columns.template.height = am4core.percent(100);
+    series.sequencedInterpolation = true;
+
+    let valueLabel = series.bullets.push(new am4charts.LabelBullet());
+    valueLabel.label.text = "{valueX}";
+    valueLabel.label.horizontalCenter = "left";
+    valueLabel.label.dx = 10;
+    valueLabel.label.hideOversized = false;
+    valueLabel.label.truncate = false;
+
+    let categoryLabel = series.bullets.push(new am4charts.LabelBullet());
+    categoryLabel.label.text = "{name}";
+    categoryLabel.label.horizontalCenter = "right";
+    categoryLabel.label.dx = -10;
+    categoryLabel.label.fill = am4core.color("#fff");
+    categoryLabel.label.hideOversized = false;
+    categoryLabel.label.truncate = false;
+  }
+  let keys: string[] = [];
+  let possibleKeys: string[] = [];
+  for (let dataObj of data) {
+    possibleKeys = Object.keys(dataObj);
+    possibleKeys.splice(keys.indexOf(pKey2), 1);
+    keys = keys.concat(possibleKeys);
+  }
+  keys = [...new Set(keys)];
+  for (let key of keys)
+    createSeries(key);
+
+  return chart;
+}
+
+function createTreeMap(data: any) {
+  let chart = am4core.create("chartdiv", am4charts.TreeMap);
+  chart.hiddenState.properties.opacity = 0;
+  chart.data = data;
+  chart.colors.step = 2;
+
+  chart.dataFields.value = "value";
+  chart.dataFields.name = "name";
+  chart.dataFields.children = "children";
+  chart.layoutAlgorithm = chart.binaryTree;
+
+  chart.zoomable = false;
+
+  let level0SeriesTemplate = chart.seriesTemplates.create("0");
+  let level0ColumnTemplate = level0SeriesTemplate.columns.template;
+
+  level0ColumnTemplate.column.cornerRadius(10, 10, 10, 10);
+  level0ColumnTemplate.fillOpacity = 0;
+  level0ColumnTemplate.strokeWidth = 4;
+  level0ColumnTemplate.strokeOpacity = 0;
+
+  let level1SeriesTemplate: any = chart.seriesTemplates.create("1");
+  level1SeriesTemplate.tooltip.dy = - 15;
+  level1SeriesTemplate.tooltip.pointerOrientation = "vertical";
+
+  let level1ColumnTemplate = level1SeriesTemplate.columns.template;
+
+  level1SeriesTemplate.tooltip.animationDuration = 0;
+  level1SeriesTemplate.strokeOpacity = 1;
+
+  level1ColumnTemplate.column.cornerRadius(10, 10, 10, 10)
+  level1ColumnTemplate.fillOpacity = 1;
+  level1ColumnTemplate.strokeWidth = 4;
+  level1ColumnTemplate.stroke = am4core.color("#ffffff");
+
+  let bullet1 = level1SeriesTemplate.bullets.push(new am4charts.LabelBullet());
+  bullet1.locationY = 0.5;
+  bullet1.locationX = 0.5;
+  bullet1.label.text = "{name}";
+  bullet1.label.fill = am4core.color("#ffffff");
+  bullet1.interactionsEnabled = false;
+  chart.maxLevels = 2;
+}
+
+function createSunburstChart(data: any) {
+  let chart = am4core.create("chartdiv", am4plugins_sunburst.Sunburst);
+  chart.padding(0, 0, 0, 0);
+  chart.radius = am4core.percent(98);
+  chart.data = data;
+
+  chart.colors.step = 2;
+  chart.fontSize = 11;
+  chart.innerRadius = am4core.percent(10);
+
+  chart.dataFields.value = "value";
+  chart.dataFields.name = "name";
+  chart.dataFields.children = "children";
+
+  let level0SeriesTemplate = new am4plugins_sunburst.SunburstSeries();
+  level0SeriesTemplate.hiddenInLegend = false;
+  chart.seriesTemplates.setKey("0", level0SeriesTemplate);
+
+  // This makes labels to be hidden if they don't fit
+  level0SeriesTemplate.labels.template.truncate = true;
+  level0SeriesTemplate.labels.template.hideOversized = true;
+
+  level0SeriesTemplate.labels.template.adapter.add("rotation", (rotation, target) => {
+    target.maxWidth = target.dataItem.slice.radius - target.dataItem.slice.innerRadius - 10;
+    target.maxHeight = Math.abs(target.dataItem.slice.arc * (target.dataItem.slice.innerRadius + target.dataItem.slice.radius) / 2 * am4core.math.RADIANS);
+
+    return rotation;
+  });
+
+  let level1SeriesTemplate = level0SeriesTemplate.clone();
+  chart.seriesTemplates.setKey("1", level1SeriesTemplate);
+  level1SeriesTemplate.fillOpacity = 0.75;
+  level1SeriesTemplate.hiddenInLegend = true;
+
+  let level2SeriesTemplate = level0SeriesTemplate.clone();
+  chart.seriesTemplates.setKey("2", level2SeriesTemplate);
+  level2SeriesTemplate.fillOpacity = 0.5;
+  level2SeriesTemplate.hiddenInLegend = true;
+
+  chart.legend = new am4charts.Legend();
 }
 
 export default DrawGraph;
