@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import * as am4maps from "@amcharts/amcharts4/maps";
@@ -14,7 +14,7 @@ import {reverseGeocode} from "./NetworkRequest";
 am4core.useTheme(am4themes_animated);
 
 const TOGGLABLE = [constants.SCATTER, constants.BUBBLE];
-const WORDCLOUDCOUNT = 100;
+const WORDCLOUDCOUNT = 50;
 
 interface Props {
   chartType: string
@@ -206,7 +206,7 @@ function createBubbleChart(data: any, pKey: string, attributes: string[]): any {
 
   let bullet = series.bullets.push(new am4charts.CircleBullet());
   bullet.stroke = am4core.color("#ffffff");
-  bullet.tooltipText = "key:{" + pKey + "}\n" + attributes[2] + ":{value}";
+  bullet.tooltipText = "{" + pKey + "}\n" + attributes[2] + ":{value}";
   series.heatRules.push({
     target: bullet.circle,
     min: 5,
