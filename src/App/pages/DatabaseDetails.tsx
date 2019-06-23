@@ -18,13 +18,13 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
   constructor(props: any) {
     super(props);
     this.state = {
-      // dbtype: "",
-      // host: "",
-      // port: undefined,
-      // dbname: "",
-      // schema: "",
-      // username: "",
-      // password: ""
+      dbtype: "",
+      host: "",
+      port: undefined,
+      dbname: "",
+      schema: "",
+      username: "",
+      password: ""
 //////// MySQL - Employees
       // dbtype: "mysql",
       // host: "data-visualisation.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
@@ -34,13 +34,13 @@ class DatabaseDetails extends Component<{getDbData: (details: any) => void}, Sta
       // username: "Erkin",
       // password: "P4ssword"
 //////// Postgres - Mondial
-      dbtype: "pgsql",
-      host: "data-visualisation-pgsql.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
-      port: "5432",
-      dbname: "postgres",
-      schema: "public",
-      username: "postgres",
-      password: "maximum007"
+//       dbtype: "pgsql",
+//       host: "data-visualisation-pgsql.ceouikiw05cd.eu-west-2.rds.amazonaws.com",
+//       port: "5432",
+//       dbname: "postgres",
+//       schema: "public",
+//       username: "postgres",
+//       password: "maximum007"
     };
   }
 
